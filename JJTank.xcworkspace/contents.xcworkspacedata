@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:JJBLECore/JJBLECore.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:JJPods/JJPods.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:JJTank/JJTank.xcodeproj">
+   </FileRef>
+</Workspace>
