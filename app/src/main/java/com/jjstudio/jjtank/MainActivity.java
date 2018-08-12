@@ -13,8 +13,6 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,10 +38,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         bluetoothDevice = getIntent().getExtras().getParcelable(EXTRAS_BLUETOOTH_DEVICE);
         tankName = getIntent().getExtras().getString(EXTRAS_TANK);
-        statusTextView = findViewById(R.id.statusTextView);
-//        statusTextView.setText("Connecting Tank "+tankName);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        statusTextView = findViewById(R.id.statusTextView);
+        statusTextView.setText("Connecting Tank " + tankName);
         connectDevice();
     }
 
@@ -84,45 +82,43 @@ public class MainActivity extends AppCompatActivity {
             bluetoothGatt = gatt;
 //            mDelayHandler!!.postDelayed(mRunnable, SPLASH_DELAY)
             List<BluetoothGattService> services = gatt.getServices();
-             bluetoothGattService = getJJBluetoothGattService(services);
-            if (bluetoothGattService==null){
-//                statusTextView.setText("No BLE service matching!");
+            bluetoothGattService = getJJBluetoothGattService(services);
+            if (bluetoothGattService == null) {
+                statusTextView.setText("No BLE service matching!");
             }
-            BluetoothGattCharacteristic characteristic = getJJBluetoothGattCharacteristic(bluetoothGattService);
-            if (characteristic==null){
-//                statusTextView.setText("No BLE characteristic matching!");
-            }
-            byte s1 = (byte) 0xC5;
-            byte s4 = (byte) 0xAA;
-            byte s2 = (byte) 0x50;
-            byte s3 = (byte) 0x50;
-            sendValue = new byte[]{s1, s2, s3, s4};
-            characteristic.setValue(sendValue);
-            Log.v(TAG, "Write data: $sendValue on characteristic $characteristic of service $service");
-            if (gatt.writeCharacteristic(characteristic)) {
-                Log.v(TAG, ("Write data: $sendValue on characteristic $characteristic of service $service success"));
-            } else {
-                Log.v(TAG, ("Write data: $sendValue on characteristic $characteristic of service $service failed"));
-
+            bluetoothGattCharacteristicChl1 = getJJBluetoothGattCharacteristic(bluetoothGattService);
+            if (bluetoothGattCharacteristicChl1 == null) {
+                statusTextView.setText("No BLE characteristic matching!");
             }
         }
 
-        private BluetoothGattService getJJBluetoothGattService(List<BluetoothGattService> services){
-            for (BluetoothGattService bluetoothGattService: services){
-                if (bluetoothGattService.getUuid().toString().toUpperCase().startsWith(JJCTRL_SERV_UUID)){
+        private BluetoothGattService getJJBluetoothGattService(List<BluetoothGattService> services) {
+            for (BluetoothGattService bluetoothGattService : services) {
+                if (bluetoothGattService.getUuid().toString().toUpperCase().startsWith(JJCTRL_SERV_UUID)) {
                     return bluetoothGattService;
                 }
             }
             return null;
         }
 
-        private BluetoothGattCharacteristic getJJBluetoothGattCharacteristic( BluetoothGattService bluetoothGattService){
-            for (BluetoothGattCharacteristic characteristic: bluetoothGattService.getCharacteristics()){
-                if (characteristic.getUuid().toString().toUpperCase().startsWith(JJCTRL_CHNEL1_UUID)){
+        private BluetoothGattCharacteristic getJJBluetoothGattCharacteristic(BluetoothGattService bluetoothGattService) {
+            for (BluetoothGattCharacteristic characteristic : bluetoothGattService.getCharacteristics()) {
+                if (characteristic.getUuid().toString().toUpperCase().startsWith(JJCTRL_CHNEL1_UUID)) {
                     return characteristic;
                 }
             }
             return null;
+        }
+
+        private void writeToCharacteristic() {
+            bluetoothGattCharacteristicChl1.setValue(sendValue);
+            Log.v(TAG, "Write data: $sendValue on characteristic $characteristic of service $service");
+            if (bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristicChl1)) {
+                Log.v(TAG, ("Write data: $sendValue on characteristic $characteristic of service $service success"));
+            } else {
+                Log.v(TAG, ("Write data: $sendValue on characteristic $characteristic of service $service failed"));
+
+            }
         }
 
         @Override
