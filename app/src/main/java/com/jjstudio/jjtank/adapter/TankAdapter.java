@@ -25,7 +25,7 @@ public class TankAdapter extends RecyclerView.Adapter<TankAdapter.ViewHolder> {
         public TextView tankTitle,tankStatus;
         public Button connectButton;
         public RecyclerViewClickListener recyclerViewClickListener;
-        public ViewHolder(TextView view,RecyclerViewClickListener recyclerViewClickListener) {
+        public ViewHolder(View view,RecyclerViewClickListener recyclerViewClickListener) {
             super(view);
             this.tankTitle =  view.findViewById(R.id.tankTitle);
             this.tankStatus =  view.findViewById(R.id.tankStatus);
@@ -51,7 +51,7 @@ public class TankAdapter extends RecyclerView.Adapter<TankAdapter.ViewHolder> {
     public TankAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                      int viewType) {
         // create a new view
-        TextView view = (TextView) LayoutInflater.from(parent.getContext())
+        View view= LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.tank_item_layout, parent, false);
         ViewHolder vh = new ViewHolder(view,recyclerViewClickListener);
         return vh;

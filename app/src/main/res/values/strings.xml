@@ -6,4 +6,5 @@
     <string name="turret_up_button_name">Up</string>
     <string name="turret_down_button_name">Down</string>
     <string name="bluetooth_indicator_name">Bluetooth</string>
+    <string name="ble_not_supported">Bluetooth LE not supported</string>
 </resources>
