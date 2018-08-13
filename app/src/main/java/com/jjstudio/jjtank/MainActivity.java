@@ -10,8 +10,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String EXTRAS_TANK = "TANK";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -37,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String tankName;
     private static final String JJCTRL_SERV_UUID = "0000FFB0";
     private static final String JJCTRL_CHNEL1_UUID = "0000FFB1";
-    private static final String TAG = SplashActivity.class.getSimpleName();
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattService bluetoothGattService;
     private boolean isRunning;
@@ -60,7 +63,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView statusTextView;
     private byte[] sendValue;
     private LinearLayout loading;
-    private Handler handler = new Handler();
+
+    private SensorManager sensorManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +90,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startupButton.setOnClickListener(this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+//        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+        checkSensorManager();
+    }
 
+    private void checkSensorManager() {
+        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager == null) {
+            statusTextView.setText("Phone doesn't support Gypo");
+        } else {
+            sensorManager.registerListener(new SensorEventListener() {
+                public void onSensorChanged(SensorEvent event) {
+                    if (Sensor.TYPE_ACCELEROMETER != event.sensor.getType()) {
+                        return;
+                    }
+                    float[] values = event.values;
+                    float ax = values[0];
+                    float ay = values[1];
+                    float az = values[2];
+                    statusTextView.setText(" ax->" + ax + " ay->" + ay + " az->" + az);
+//                    speedUpAndReturnValue(ax,ay,az);
+                }
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            }, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    private String speedUpAndReturnValue(float ax, float ay, float az){
+        byte[] speedData = new byte[4];
+        sendValue = speedData;
+        writeToCharacteristic();
+        return "Speed: Left ";
     }
 
     @Override
@@ -215,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         statusTextView.setText("Tank connected!");
         loading.setVisibility(View.GONE);
+        checkSensorManager();
         isConnectted = true;
     }
 
