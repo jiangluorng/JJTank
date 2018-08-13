@@ -141,8 +141,10 @@ public class SplashActivity extends AppCompatActivity {
     private Runnable stopBleRunnable = new Runnable() {
         @Override
         public void run() {
-            Toast.makeText(context, "Stop BLE after 10s to save battery.", Toast.LENGTH_SHORT).show();
-            stopScanning();
+            if (mScanning) {
+                Toast.makeText(context, "Stop BLE after 10s to save battery.", Toast.LENGTH_SHORT).show();
+                stopScanning();
+            }
         }
     };
 

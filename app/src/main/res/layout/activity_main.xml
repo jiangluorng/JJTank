@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/back2x"
     tools:context="com.jjstudio.jjtank.MainActivity">
+    <include layout="@layout/selfdef_progress_dialog_layout" />
 
     <ImageButton
         android:id="@+id/switch4"
@@ -142,10 +143,10 @@
         android:contentDescription="@string/turret_left_button_name"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/turrentRightButton"
-        app:layout_constraintHorizontal_bias="0.764"
+        app:layout_constraintHorizontal_bias="0.754"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.839"
+        app:layout_constraintVertical_bias="0.826"
         app:srcCompat="@drawable/leftarr" />
 
     <ImageButton
@@ -237,17 +238,22 @@
 
     <SeekBar
         android:id="@+id/throttleBar"
+        style="@android:style/Widget.DeviceDefault.SeekBar"
         android:layout_width="280dp"
         android:layout_height="13dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:rotation="270"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="visible"
+        tools:layout_editor_absoluteX="41dp"
+        tools:layout_editor_absoluteY="199dp" />
+
+    <ImageButton
+        android:id="@+id/startupButton"
+        android:layout_width="73dp"
+        android:layout_height="49dp"
+        android:layout_marginEnd="68dp"
+        android:layout_marginTop="168dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.062"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.501" />
+        app:srcCompat="@android:drawable/ic_lock_power_off" />
+
 </android.support.constraint.ConstraintLayout>
