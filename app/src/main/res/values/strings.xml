@@ -7,4 +7,8 @@
     <string name="turret_down_button_name">Down</string>
     <string name="bluetooth_indicator_name">Bluetooth</string>
     <string name="ble_not_supported">Bluetooth LE not supported</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="no_data">No data</string>
+
 </resources>

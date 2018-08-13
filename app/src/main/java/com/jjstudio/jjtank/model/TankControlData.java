@@ -16,4 +16,5 @@ public class TankControlData {
     public static byte[] GYRO_ON = {(byte) 0xC6,(byte) 0x0A,(byte) 0x00,(byte) 0xAA};
     public static byte[] GYRO_OFF = {(byte) 0xC6,(byte) 0x0A,(byte) 0x00,(byte) 0xAA};
     public static byte[] FIRE = {(byte) 0xC8,(byte) 0x32,(byte) 0x32,(byte) 0xAA};
+    public static boolean isTest = false;
 }

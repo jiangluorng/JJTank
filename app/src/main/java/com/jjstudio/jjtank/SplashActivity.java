@@ -26,6 +26,7 @@ import com.jjstudio.jjtank.adapter.TankAdapter;
 import com.jjstudio.jjtank.listener.RecyclerViewClickListener;
 import com.jjstudio.jjtank.model.StatusEnum;
 import com.jjstudio.jjtank.model.Tank;
+import com.jjstudio.jjtank.model.TankControlData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,6 +155,7 @@ public class SplashActivity extends AppCompatActivity {
             Tank tank = tankList.get(position);
             final Intent intent = new Intent(SplashActivity.this, MainActivity.class);
             intent.putExtra(MainActivity.EXTRAS_TANK, tank.getTitle());
+            intent.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, tank.getUuid());
             intent.putExtra(MainActivity.EXTRAS_BLUETOOTH_DEVICE, tank.getBluetoothDevice());
             if (mScanning) {
                 stopScanning();
@@ -185,7 +187,7 @@ public class SplashActivity extends AppCompatActivity {
             BluetoothDevice bluetoothDevice = result.getDevice();
             String deviceAddress = bluetoothDevice.getAddress();
             String deviceName = bluetoothDevice.getName();
-            if (!tankUUIDs.contains(deviceAddress) && deviceName != null && deviceName.startsWith("JJtk")) {
+            if (!tankUUIDs.contains(deviceAddress) && (TankControlData.isTest || deviceName != null && deviceName.startsWith("JJtk"))) {
                 tankList.add(new Tank(deviceName, deviceAddress, StatusEnum.Disconnected, bluetoothDevice));
                 tankInfoTextView.append("\nfound device... " + deviceName + " -  " + deviceAddress);
             }
