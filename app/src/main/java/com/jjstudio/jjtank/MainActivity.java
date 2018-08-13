@@ -108,8 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     float ax = values[0];
                     float ay = values[1];
                     float az = values[2];
-                    statusTextView.setText(" ax->" + ax + " ay->" + ay + " az->" + az);
-//                    speedUpAndReturnValue(ax,ay,az);
+                    statusTextView.setText(moveAndReturnValue(ax,ay,az));
                 }
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -118,11 +117,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private String speedUpAndReturnValue(float ax, float ay, float az){
+    private String moveAndReturnValue(float ax, float ay, float az){
+        //x = speed, -10 means backwards full speed, 10 means forwards full speed
+        // y= direction, -15 means left full, 5 = right full
         byte[] speedData = new byte[4];
         sendValue = speedData;
-        writeToCharacteristic();
-        return "Speed: Left ";
+//        writeToCharacteristic();
+        String movement = "";
+
+        int speed = getSpeed(ax);
+        int direction = getDirection(ay);
+        if (speed>0){
+            movement = "Forward, ";
+        }else if(speed<0){
+            movement = "Backward, ";
+
+        }
+        if (direction!=0) {
+            if (ay > -5) {
+                movement += " Right, ";
+            } else {
+                movement += " Left, ";
+            }
+        }
+
+        movement  = movement+"Speed "+getSpeed(ax);
+        movement  = movement+" Direction "+getDirection(ay);
+        return movement;
+    }
+
+    private int getSpeed(float ax){
+        return (int ) (0-ax)*5;
+    }
+    private int getDirection(float ay){
+        return (int )(ay+5)*5;
     }
 
     @Override
