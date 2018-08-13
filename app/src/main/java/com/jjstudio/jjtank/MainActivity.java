@@ -161,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void writeToCharacteristic() {
         bluetoothGattCharacteristicChl1.setValue(sendValue);
-        Log.v(TAG, "Write data: $sendValue on characteristic $characteristic of service $service");
         if (bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristicChl1)) {
             Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(sendValue) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service success"));
         } else {
