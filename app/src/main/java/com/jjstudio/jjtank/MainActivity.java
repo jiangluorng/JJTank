@@ -90,8 +90,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startupButton.setOnClickListener(this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-//        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-        checkSensorManager();
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+//        checkSensorManager();
     }
 
     private void checkSensorManager() {
