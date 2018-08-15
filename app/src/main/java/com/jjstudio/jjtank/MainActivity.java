@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String EXTRAS_BLUETOOTH_DEVICE = "BLUETOOTH_DEVICE";
     private BluetoothDevice bluetoothDevice;
     private String tankName;
-    private static final String JJCTRL_SERV_UUID = "0000FFB0";
-    private static final String JJCTRL_CHNEL1_UUID = "0000FFB1";
+    private static final String JJCTRL_SERV_UUID = "0000FFF0";
+    private static final String JJCTRL_CHNEL1_UUID = "0000FFF2";
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattService bluetoothGattService;
     private boolean isRunning;

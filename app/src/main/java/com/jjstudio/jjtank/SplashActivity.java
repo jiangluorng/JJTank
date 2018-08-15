@@ -125,6 +125,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             startScanning();
         }
     };
+
     public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -194,6 +195,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
 
         }
     }
+
     private void initBluetooth() {
         bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -296,6 +298,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             String deviceAddress = bluetoothDevice.getAddress();
             String deviceName = bluetoothDevice.getName();
             if (deviceName != null && !tankUUIDs.contains(deviceAddress) && (TankControlData.isTest || deviceName != null && deviceName.startsWith("JJtk"))) {
+                tankUUIDs.add(deviceAddress);
                 tankList.add(new Tank(deviceName, deviceAddress, StatusEnum.Disconnected, bluetoothDevice));
                 tankInfoTextView.append("\nfound device... " + deviceName + " -  " + deviceAddress);
             }
