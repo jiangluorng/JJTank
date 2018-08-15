@@ -10,5 +10,8 @@
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
     <string name="no_data">No data</string>
+    <string name="title_location_permission">Need location permission</string>
+    <string name="text_location_permission">Please grant location permission to use bluetooth</string>
+    <string name="ok">OK</string>
 
 </resources>
