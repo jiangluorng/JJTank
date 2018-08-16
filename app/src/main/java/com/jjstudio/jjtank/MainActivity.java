@@ -271,10 +271,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bluetoothGattService = getJJBluetoothGattService(gattServices);
         if (bluetoothGattService == null) {
             statusTextView.setText("No BLE service matching!");
+            return;
         }
         bluetoothGattCharacteristicChl1 = getJJBluetoothGattCharacteristic(bluetoothGattService);
         if (bluetoothGattCharacteristicChl1 == null) {
             statusTextView.setText("No BLE characteristic matching!");
+            return;
         }
         statusTextView.setText("Tank connected!");
         loading.setVisibility(View.GONE);

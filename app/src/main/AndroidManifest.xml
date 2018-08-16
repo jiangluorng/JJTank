@@ -3,7 +3,7 @@
     package="com.jjstudio.jjtank">
 
     <application android:label="@string/app_name"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/ic_jjtank"
         android:theme="@style/AppTheme.NoActionBar"
         android:screenOrientation="landscape">
         <activity android:name=".SplashActivity"
