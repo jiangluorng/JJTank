@@ -52,12 +52,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl4;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl5;
 
-    private ImageButton startupButton;
-    private ImageButton switch1Button;
-    private ImageButton switch2Button;
-    private ImageButton switch3Button;
-    private ImageButton switch4Button;
+    private ImageButton switchButton;
+    private ImageButton lightSwitchButton;
+    private ImageButton mgSwitchButton;
+    private ImageButton soundSwitchButton;
+    private ImageButton gyroSwitchButton;
     private ImageButton fireButton;
+    private ImageButton bluetoothIndicator;
+    private ImageButton bluetoothTxIndicator;
+    private ImageButton bluetoothRxIndicator;
+    private ImageButton turrentLeftButton;
+    private ImageButton turrentUpButton;
+    private ImageButton turrentRightButton;
+    private ImageButton turrentDownButton;
 
 
     private TextView statusTextView;
@@ -75,19 +82,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         statusTextView = findViewById(R.id.statusTextView);
         statusTextView.setText("Connecting Tank " + tankName);
-        startupButton = findViewById(R.id.startupButton);
+        switchButton = findViewById(R.id.startupButton);
         loading = findViewById(R.id.loading);
-        switch1Button = findViewById(R.id.switch1);
-        switch2Button = findViewById(R.id.switch2);
-        switch3Button = findViewById(R.id.switch3);
-        switch4Button = findViewById(R.id.switch4);
+        lightSwitchButton = findViewById(R.id.switch1);
+        mgSwitchButton = findViewById(R.id.switch2);
+        soundSwitchButton = findViewById(R.id.switch3);
+        gyroSwitchButton = findViewById(R.id.switch4);
         fireButton = findViewById(R.id.fireButton);
+        bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
+        bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
+        bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
+        turrentLeftButton = findViewById(R.id.turrentLeftButton);
+        turrentUpButton = findViewById(R.id.turrentUpButton);
+        turrentRightButton = findViewById(R.id.turrentRightButton);
+        turrentDownButton = findViewById(R.id.turrentDownButton);
+
+
         fireButton.setOnClickListener(this);
-        switch1Button.setOnClickListener(this);
-        switch2Button.setOnClickListener(this);
-        switch3Button.setOnClickListener(this);
-        switch4Button.setOnClickListener(this);
-        startupButton.setOnClickListener(this);
+        turrentLeftButton.setOnClickListener(this);
+        turrentUpButton.setOnClickListener(this);
+        turrentRightButton.setOnClickListener(this);
+        turrentDownButton.setOnClickListener(this);
+        lightSwitchButton.setOnClickListener(this);
+        mgSwitchButton.setOnClickListener(this);
+        soundSwitchButton.setOnClickListener(this);
+        gyroSwitchButton.setOnClickListener(this);
+        switchButton.setOnClickListener(this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -108,8 +128,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     float ax = values[0];
                     float ay = values[1];
                     float az = values[2];
-                    statusTextView.setText(moveAndReturnValue(ax,ay,az));
+                    statusTextView.setText(moveAndReturnValue(ax, ay, az));
                 }
+
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
                 }
@@ -117,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private String moveAndReturnValue(float ax, float ay, float az){
+    private String moveAndReturnValue(float ax, float ay, float az) {
         //x = speed, -10 means backwards full speed, 10 means forwards full speed
         // y= direction, -15 means left full, 5 = right full
         byte[] speedData = new byte[4];
@@ -127,13 +148,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int speed = getSpeed(ax);
         int direction = getDirection(ay);
-        if (speed>0){
+        if (speed > 0) {
             movement = "Forward, ";
-        }else if(speed<0){
+        } else if (speed < 0) {
             movement = "Backward, ";
 
         }
-        if (direction!=0) {
+        if (direction != 0) {
             if (ay > -5) {
                 movement += " Right, ";
             } else {
@@ -141,16 +162,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        movement  = movement+"Speed "+getSpeed(ax);
-        movement  = movement+" Direction "+getDirection(ay);
+        movement = movement + "Speed " + getSpeed(ax);
+        movement = movement + " Direction " + getDirection(ay);
         return movement;
     }
 
-    private int getSpeed(float ax){
-        return (int ) (0-ax)*5;
+    private int getSpeed(float ax) {
+        return (int) (0 - ax) * 5;
     }
-    private int getDirection(float ay){
-        return (int )(ay+5)*5;
+
+    private int getDirection(float ay) {
+        return (int) (ay + 5) * 5;
     }
 
     @Override
@@ -194,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     writeToCharacteristic();
                 }
             }
-            if (view == switch1Button || view == switch2Button || view == switch3Button || view == switch4Button) {
+            if (view == lightSwitchButton || view == mgSwitchButton || view == soundSwitchButton || view == gyroSwitchButton) {
                 ImageButton btn = (ImageButton) view;
                 boolean isOn = (btn.getTag() != null && (boolean) btn.getTag());
                 if (!isOn) {
@@ -208,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 writeToCharacteristic();
             }
-            if (view == startupButton) {
+            if (view == switchButton) {
                 if (isRunning) {
                     sendValue = TankControlData.STOP;
                     isRunning = false;
@@ -216,6 +238,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendValue = TankControlData.GO;
                     isRunning = true;
                 }
+                writeToCharacteristic();
+            }
+            if (view == turrentLeftButton) {
+                sendValue = TankControlData.TURRENT_LEFT;
+                writeToCharacteristic();
+            }
+            if (view == turrentRightButton) {
+                sendValue = TankControlData.TURRENT_RIGHT;
+                writeToCharacteristic();
+            }
+            if (view == turrentUpButton) {
+                sendValue = TankControlData.TURRENT_UP;
+                writeToCharacteristic();
+            }
+            if (view == turrentDownButton) {
+                sendValue = TankControlData.TURRENT_DOWN;
                 writeToCharacteristic();
             }
         }
