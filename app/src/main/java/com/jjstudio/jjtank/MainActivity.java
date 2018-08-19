@@ -1,6 +1,6 @@
 package com.jjstudio.jjtank;
 
-import android.bluetooth.BluetoothDevice;
+import android.app.Dialog;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -10,6 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -19,11 +22,14 @@ import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.github.sumimakito.awesomeqr.AwesomeQRCode;
 import com.jjstudio.jjtank.model.TankControlData;
 import com.jjstudio.jjtank.service.BluetoothLeService;
 import com.jjstudio.jjtank.util.DataUtils;
@@ -37,14 +43,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String EXTRAS_TANK = "TANK";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     public static final String EXTRAS_BLUETOOTH_DEVICE = "BLUETOOTH_DEVICE";
-    private BluetoothDevice bluetoothDevice;
     private String tankName;
     private static final String JJCTRL_SERV_UUID = "0000FFF0";
     private static final String JJCTRL_CHNEL1_UUID = "0000FFF2";
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattService bluetoothGattService;
     private boolean isRunning;
-    private boolean isConnectted;
+    private boolean isConnectted = true;
     private String mDeviceAddress;
     private BluetoothGattCharacteristic bluetoothGattCharacteristicChl1;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl2;
@@ -58,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton soundSwitchButton;
     private ImageButton gyroSwitchButton;
     private ImageButton fireButton;
+    private ImageButton qrButton;
     private ImageButton bluetoothIndicator;
     private ImageButton bluetoothTxIndicator;
     private ImageButton bluetoothRxIndicator;
@@ -69,21 +75,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView statusTextView;
     private byte[] sendValue;
-    private LinearLayout loading;
-
+    private View loadingLayout;
     private SensorManager sensorManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        bluetoothDevice = getIntent().getExtras().getParcelable(EXTRAS_BLUETOOTH_DEVICE);
         mDeviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
         tankName = getIntent().getExtras().getString(EXTRAS_TANK);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
-        loading = findViewById(R.id.loading);
         lightSwitchButton = findViewById(R.id.switch1);
         mgSwitchButton = findViewById(R.id.switch2);
         soundSwitchButton = findViewById(R.id.switch3);
@@ -96,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         turrentUpButton = findViewById(R.id.turrentUpButton);
         turrentRightButton = findViewById(R.id.turrentRightButton);
         turrentDownButton = findViewById(R.id.turrentDownButton);
+        qrButton = findViewById(R.id.qrButton);
 
 
         fireButton.setOnClickListener(this);
@@ -108,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         soundSwitchButton.setOnClickListener(this);
         gyroSwitchButton.setOnClickListener(this);
         switchButton.setOnClickListener(this);
+        qrButton.setOnClickListener(this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -256,6 +262,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sendValue = TankControlData.TURRENT_DOWN;
                 writeToCharacteristic();
             }
+            if (view == qrButton){
+                Dialog qrDialog = new Dialog(this);
+                qrDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+                qrDialog.setContentView(getLayoutInflater().inflate(R.layout.qr_image_layout
+                        , null));
+                ImageView qrImage =  qrDialog.findViewById(R.id.generatedQRImageView);
+                Bitmap backgroundBitmap = BitmapFactory.decodeResource(this.getResources(),
+                        R.drawable.merkava4);
+                Bitmap qrCode = AwesomeQRCode.create("Makito loves Kafuu Chino.", 800, 20, 0.3f, Color.BLACK, Color.WHITE, backgroundBitmap, true, true);
+                qrImage.setImageBitmap(qrCode);
+                qrDialog.show();
+            }
         }
     }
 
@@ -309,15 +327,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bluetoothGattService = getJJBluetoothGattService(gattServices);
         if (bluetoothGattService == null) {
             statusTextView.setText("No BLE service matching!");
+            loadingLayout.setVisibility(View.GONE);
             return;
         }
         bluetoothGattCharacteristicChl1 = getJJBluetoothGattCharacteristic(bluetoothGattService);
         if (bluetoothGattCharacteristicChl1 == null) {
             statusTextView.setText("No BLE characteristic matching!");
+            loadingLayout.setVisibility(View.GONE);
             return;
         }
         statusTextView.setText("Tank connected!");
-        loading.setVisibility(View.GONE);
+        loadingLayout.setVisibility(View.GONE);
         checkSensorManager();
         isConnectted = true;
     }
@@ -360,6 +380,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 updateConnectionState(R.string.connected);
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 updateConnectionState(R.string.disconnected);
+                loadingLayout.setVisibility(View.GONE);
+
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 bluetoothGatt = mBluetoothLeService.getmBluetoothGatt();

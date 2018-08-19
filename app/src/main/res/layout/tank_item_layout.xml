@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -12,18 +13,22 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
             <TextView
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
                 android:id="@+id/tankTitle"
-                android:text="Tank"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Tank"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+                tools:textColor="?attr/colorAccent" />
+
             <TextView
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-                android:text="Status"
                 android:id="@+id/tankStatus"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                tools:textColor="?android:attr/colorActivatedHighlight" />
 
             <Button
                 android:id="@+id/connectButton"
