@@ -18,6 +18,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -76,10 +77,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private TextView statusTextView;
-    private byte[] sendValue;
     private byte[] speedDirectionData;
-    private int speedDirectionDataInterval = 500; // 0.5 seconds by default
-    private int blueBlinkInterval = 1000; // 0.5 seconds by default
+    private int blueBlinkInterval = 500; // 0.5 seconds by default
+    private int txBlinkInterval = 200; // 0.5 seconds by default
+
+
+    private Handler sendingDataHandler = new Handler();
+    private Handler blueHandler = new Handler();
+    private Handler blueTxHandler = new Handler();
+    private Handler blueRxHandler = new Handler();
+
+    private boolean isBluetoothBlinking;
+    private Runnable bluetoothBlinking = new Runnable() {
+        @Override
+        public void run() {
+            if (isBluetoothBlinking) {
+                bluetoothIndicator.setImageResource(R.drawable.indilightonblue);
+                isBluetoothBlinking = false;
+            } else {
+                bluetoothIndicator.setImageResource(R.drawable.indilightoff);
+                isBluetoothBlinking = true;
+            }
+            // Repeat this the same runnable code block again another 1 seconds
+            blueHandler.postDelayed(bluetoothBlinking, blueBlinkInterval);
+        }
+    };
+
+    private boolean isTxBlinking;
+    private int txTimer = 0;
+    private Runnable txBlinking = new Runnable() {
+        @Override
+        public void run() {
+            txTimer++;
+            if (isTxBlinking) {
+                bluetoothTxIndicator.setImageResource(R.drawable.indilightonblue);
+                isTxBlinking = false;
+            } else {
+                bluetoothTxIndicator.setImageResource(R.drawable.indilightoff);
+                isTxBlinking = true;
+            }
+            if (txTimer < 4) {
+                // Repeat this the same runnable code block again another 1 seconds
+                blueTxHandler.postDelayed(txBlinking, txBlinkInterval);
+            } else {
+                txTimer = 0;
+            }
+        }
+    };
+
+    private boolean isRxBlinking;
+
+    private Runnable rxBlinking = new Runnable() {
+        @Override
+        public void run() {
+            if (isRxBlinking) {
+                bluetoothRxIndicator.setImageResource(R.drawable.indilightonblue);
+                isRxBlinking = false;
+            } else {
+                bluetoothRxIndicator.setImageResource(R.drawable.indilightoff);
+                isRxBlinking = true;
+            }
+            blueRxHandler.postDelayed(rxBlinking, txBlinkInterval);
+        }
+    };
+
+    private Runnable sendingDataRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (speedDirectionData != null) {
+                writeToCharacteristic(speedDirectionData);
+            }
+            sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
+        }
+    };
 
     private View loadingLayout;
     private SensorManager sensorManager;
@@ -125,7 +195,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-//        checkSensorManager();
+        blueHandler.post(bluetoothBlinking);
+        sendingDataHandler.post(sendingDataRunnable);
     }
 
     private void checkSensorManager() {
@@ -152,24 +223,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private byte[] calculateSpeedDirectionData(float ax, float ay) {
+    // TODO calculate speed and directions
+    private void calculateSpeedDirectionData(float ax, float ay) {
+        speedDirectionData = new byte[5];
+        speedDirectionData[0] = (byte) 0xA5;
+        speedDirectionData[1] = (byte) ax;
+        speedDirectionData[2] = (byte) ay;
+        speedDirectionData[3] = (byte) 0xA5;
+        speedDirectionData[4] = (byte) 0xAA;
         int speed = getSpeed(ax);
         int direction = getDirection(ay);
         if (speed > 0) {
+
         } else {
 
         }
         if (direction > 0) {
         } else {
         }
-        return new byte[0];
     }
 
     private String moveAndReturnValue(float ax, float ay, float az) {
         //x = speed, -10 means backwards full speed, 10 means forwards full speed
         // y= direction, -15 means left full, 5 = right full
-        byte[] speedData = new byte[4];
-        sendValue = speedData;
 //        writeToCharacteristic();
         String movement = "";
 
@@ -190,7 +266,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 movement += " Left, ";
             }
         }
-
+        if (speed != 0 || direction != 0) {
+            calculateSpeedDirectionData(ax, ay);
+        } else {
+            speedDirectionData = null;
+        }
         movement = movement + "Speed " + getSpeed(ax);
         movement = movement + " Direction " + getDirection(ay);
         return movement;
@@ -239,10 +319,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         if (isConnectted) {
+            byte[] sendValue;
             if (view == fireButton) {
                 if (isConnectted) {
                     sendValue = TankControlData.FIRE;
-                    writeToCharacteristic();
+                    writeToCharacteristic(sendValue);
                 }
             }
             if (view == lightSwitchButton || view == mgSwitchButton || view == soundSwitchButton || view == gyroSwitchButton) {
@@ -257,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendValue = TankControlData.SWT_1_OFF;
                     btn.setTag(false);
                 }
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == switchButton) {
                 if (isRunning) {
@@ -267,23 +348,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendValue = TankControlData.GO;
                     isRunning = true;
                 }
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == turrentLeftButton) {
                 sendValue = TankControlData.TURRENT_LEFT;
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == turrentRightButton) {
                 sendValue = TankControlData.TURRENT_RIGHT;
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == turrentUpButton) {
                 sendValue = TankControlData.TURRENT_UP;
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == turrentDownButton) {
                 sendValue = TankControlData.TURRENT_DOWN;
-                writeToCharacteristic();
+                writeToCharacteristic(sendValue);
             }
             if (view == qrButton) {
                 Dialog qrDialog = new Dialog(this);
@@ -301,14 +382,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void writeToCharacteristic() {
-        bluetoothGattCharacteristicChl1.setValue(sendValue);
-        dataDisplayTextView.setText(bytesToHex(sendValue));
+    private void writeToCharacteristic(byte[] data) {
+        bluetoothGattCharacteristicChl1.setValue(data);
+        dataDisplayTextView.setText(bytesToHex(data));
         if (bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristicChl1)) {
-            Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(sendValue) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service success"));
+            Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(data) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service success"));
         } else {
-            Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(sendValue) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service failed"));
+            Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(data) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service failed"));
         }
+        blueTxHandler.post(txBlinking);
     }
 
     private BluetoothGattService getJJBluetoothGattService(List<BluetoothGattService> services) {
