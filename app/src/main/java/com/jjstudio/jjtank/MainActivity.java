@@ -26,7 +26,6 @@ import android.view.Window;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -73,10 +72,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton turrentRightButton;
     private ImageButton turrentDownButton;
     private ProgressBar throttleProgressBar;
+    private TextView dataDisplayTextView;
 
 
     private TextView statusTextView;
     private byte[] sendValue;
+    private byte[] speedDirectionData;
+    private int speedDirectionDataInterval = 500; // 0.5 seconds by default
+    private int blueBlinkInterval = 1000; // 0.5 seconds by default
+
     private View loadingLayout;
     private SensorManager sensorManager;
 
@@ -88,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
+        dataDisplayTextView = findViewById(R.id.dataDisplayTextView);
         throttleProgressBar = findViewById(R.id.throttleProgressBar);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
@@ -147,6 +152,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private byte[] calculateSpeedDirectionData(float ax, float ay) {
+        int speed = getSpeed(ax);
+        int direction = getDirection(ay);
+        if (speed > 0) {
+        } else {
+
+        }
+        if (direction > 0) {
+        } else {
+        }
+        return new byte[0];
+    }
+
     private String moveAndReturnValue(float ax, float ay, float az) {
         //x = speed, -10 means backwards full speed, 10 means forwards full speed
         // y= direction, -15 means left full, 5 = right full
@@ -163,7 +181,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             movement = "Backward, ";
 
         }
-        throttleProgressBar.setProgress(speed+50);
+        // adding 50 to display backwards speed
+        throttleProgressBar.setProgress(speed + 50);
         if (direction != 0) {
             if (ay > -5) {
                 movement += " Right, ";
@@ -266,12 +285,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 sendValue = TankControlData.TURRENT_DOWN;
                 writeToCharacteristic();
             }
-            if (view == qrButton){
+            if (view == qrButton) {
                 Dialog qrDialog = new Dialog(this);
                 qrDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
                 qrDialog.setContentView(getLayoutInflater().inflate(R.layout.qr_image_layout
                         , null));
-                ImageView qrImage =  qrDialog.findViewById(R.id.generatedQRImageView);
+                ImageView qrImage = qrDialog.findViewById(R.id.generatedQRImageView);
                 Bitmap backgroundBitmap = BitmapFactory.decodeResource(this.getResources(),
                         R.drawable.merkava4);
                 Bitmap qrCode = AwesomeQRCode.create(tankName + "|" + mDeviceAddress, 800, 20, 0.3f, Color.BLACK, Color.WHITE, backgroundBitmap, true, true);
@@ -284,6 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void writeToCharacteristic() {
         bluetoothGattCharacteristicChl1.setValue(sendValue);
+        dataDisplayTextView.setText(bytesToHex(sendValue));
         if (bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristicChl1)) {
             Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(sendValue) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service success"));
         } else {
@@ -429,4 +449,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return false;
                 }
             };
+
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
 }
