@@ -27,6 +27,7 @@ import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.github.sumimakito.awesomeqr.AwesomeQRCode;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton turrentUpButton;
     private ImageButton turrentRightButton;
     private ImageButton turrentDownButton;
+    private ProgressBar throttleProgressBar;
 
 
     private TextView statusTextView;
@@ -86,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
+        throttleProgressBar = findViewById(R.id.throttleProgressBar);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
         lightSwitchButton = findViewById(R.id.switch1);
@@ -160,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             movement = "Backward, ";
 
         }
+        throttleProgressBar.setProgress(speed+50);
         if (direction != 0) {
             if (ay > -5) {
                 movement += " Right, ";
