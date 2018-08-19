@@ -3,6 +3,7 @@ package com.jjstudio.jjtank;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
@@ -11,16 +12,20 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
 
     private QRCodeReaderView qrCodeReaderView;
 
+    private TextView tankDeviceAddress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         qrCodeReaderView = findViewById(R.id.qrdecoderview);
+        tankDeviceAddress= findViewById(R.id.tankDeviceAddress);
         initQRScanner();
     }
 
     @Override
     public void onQRCodeRead(String text, PointF[] points) {
+        tankDeviceAddress.setText(text);
         Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 

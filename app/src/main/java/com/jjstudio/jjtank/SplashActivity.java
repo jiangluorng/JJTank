@@ -136,6 +136,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private View.OnClickListener scanQrButtonOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+            stopScanning();
             final Intent intent = new Intent(SplashActivity.this, ScanActivity.class);
             startActivity(intent);
         }
