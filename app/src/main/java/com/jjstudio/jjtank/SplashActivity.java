@@ -12,7 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
+import android.graphics.PointF;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -31,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 import com.jjstudio.jjtank.adapter.TankAdapter;
 import com.jjstudio.jjtank.listener.RecyclerViewClickListener;
 import com.jjstudio.jjtank.model.StatusEnum;
@@ -40,7 +41,7 @@ import com.jjstudio.jjtank.model.TankControlData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashActivity extends AppCompatActivity implements LocationListener {
+public class SplashActivity extends AppCompatActivity implements LocationListener, QRCodeReaderView.OnQRCodeReadListener {
     private static final String TAG = SplashActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -50,6 +51,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private List<String> tankUUIDs;
 
     private Button rescanButton;
+    private Button scanQRButton;
     private List<Tank> tankList;
     private boolean mScanning;
     private BluetoothManager bluetoothManager;
@@ -60,6 +62,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private Context context;
     private TextView tankInfoTextView;
     LocationManager locationManager;
+
     String provider;
 
     @Override
@@ -70,8 +73,11 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
         setContentView(R.layout.activity_splash);
         mRecyclerView = findViewById(R.id.tankListView);
         tankInfoTextView = findViewById(R.id.tankInfos);
+
         rescanButton = findViewById(R.id.rescan);
+        scanQRButton = findViewById(R.id.scanQRButton);
         rescanButton.setOnClickListener(rescanButtonOnClickListener);
+        scanQRButton.setOnClickListener(scanQrButtonOnClickListener);
         mRecyclerView.setHasFixedSize(true);
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
@@ -127,7 +133,48 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
         }
     };
 
+    private View.OnClickListener scanQrButtonOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            final Intent intent = new Intent(SplashActivity.this, ScanActivity.class);
+            startActivity(intent);
+        }
+    };
+
     public boolean checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.CAMERA)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.title_location_permission)
+                        .setMessage(R.string.text_location_permission)
+                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(SplashActivity.this,
+                                        new String[]{Manifest.permission.CAMERA},
+                                        MY_PERMISSIONS_REQUEST_LOCATION);
+                            }
+                        })
+                        .create()
+                        .show();
+
+
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.CAMERA},
+                        MY_PERMISSIONS_REQUEST_LOCATION);
+            }
+            return false;
+        }
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -165,6 +212,11 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
         } else {
             return true;
         }
+    }
+
+    @Override
+    public void onQRCodeRead(String text, PointF[] points) {
+        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 
     @Override

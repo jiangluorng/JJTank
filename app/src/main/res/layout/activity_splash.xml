@@ -6,12 +6,18 @@
     android:orientation="vertical"
     android:background="@drawable/startbackground2x">
 
+    <Button
+        android:id="@+id/scanQRButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scan QR code" />
 
     <TextView
         android:id="@+id/tankInfos"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:text="      Scanning tanks"
+        android:padding="5dp"
+        android:text="Scanning tanks"
         android:textAlignment="center"
         tools:textColor="?attr/colorBackgroundFloating" />
 
