@@ -17,7 +17,7 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
 
     private TextView tankDeviceAddress;
 
-    private String tankUUID;
+    private String tankUUID, tankName;
 
     private Button connectButton;
 
@@ -25,10 +25,10 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
-        tankUUID ="";
+        tankUUID = tankName = "";
         qrCodeReaderView = findViewById(R.id.qrdecoderview);
         connectButton = findViewById(R.id.connectButton);
-        tankDeviceAddress= findViewById(R.id.tankDeviceAddress);
+        tankDeviceAddress = findViewById(R.id.tankDeviceAddress);
         connectButton.setOnClickListener(this);
         initQRScanner();
     }
@@ -37,18 +37,24 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
     public void onClick(View view) {
         final Intent intent = new Intent(ScanActivity.this, MainActivity.class);
         intent.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, tankUUID);
+        intent.putExtra(MainActivity.EXTRAS_TANK, tankName);
         startActivity(intent);
     }
 
     @Override
     public void onQRCodeRead(String text, PointF[] points) {
-        tankUUID = text;
-        connectButton.setVisibility(View.VISIBLE);
-        tankDeviceAddress.setText("Found tank -> " +text);
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+        String qrValue = text;
+        if (qrValue.contains("|")) {
+            tankUUID = qrValue.split("\\|")[1];
+            tankName = qrValue.split("\\|")[0];
+            connectButton.setVisibility(View.VISIBLE);
+            tankDeviceAddress.setText("Found tank -> " + text);
+        } else {
+            Toast.makeText(getApplicationContext(), "Invalid JJTANK QR code!", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void initQRScanner(){
+    private void initQRScanner() {
         qrCodeReaderView.setOnQRCodeReadListener(this);
         // Use this function to enable/disable decoding
         qrCodeReaderView.setQRDecodingEnabled(true);

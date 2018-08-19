@@ -270,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ImageView qrImage =  qrDialog.findViewById(R.id.generatedQRImageView);
                 Bitmap backgroundBitmap = BitmapFactory.decodeResource(this.getResources(),
                         R.drawable.merkava4);
-                Bitmap qrCode = AwesomeQRCode.create("Makito loves Kafuu Chino.", 800, 20, 0.3f, Color.BLACK, Color.WHITE, backgroundBitmap, true, true);
+                Bitmap qrCode = AwesomeQRCode.create(tankName + "|" + mDeviceAddress, 800, 20, 0.3f, Color.BLACK, Color.WHITE, backgroundBitmap, true, true);
                 qrImage.setImageBitmap(qrCode);
                 qrDialog.show();
             }
