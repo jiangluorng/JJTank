@@ -29,6 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.sumimakito.awesomeqr.AwesomeQRCode;
 import com.jjstudio.jjtank.model.TankControlData;
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void run() {
             if (speedDirectionData != null) {
-                writeToCharacteristic(speedDirectionData);
+                writeToCharacteristic(speedDirectionData,false);
             }
             sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
         }
@@ -323,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (view == fireButton) {
                 if (isConnectted) {
                     sendValue = TankControlData.FIRE;
-                    writeToCharacteristic(sendValue);
+                    writeToCharacteristic(sendValue,true);
                 }
             }
             if (view == lightSwitchButton || view == mgSwitchButton || view == soundSwitchButton || view == gyroSwitchButton) {
@@ -338,33 +339,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendValue = TankControlData.SWT_1_OFF;
                     btn.setTag(false);
                 }
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == switchButton) {
                 if (isRunning) {
                     sendValue = TankControlData.STOP;
+                    Toast.makeText(getApplicationContext(), "Tank stopped", Toast.LENGTH_SHORT).show();
                     isRunning = false;
                 } else {
                     sendValue = TankControlData.GO;
+                    Toast.makeText(getApplicationContext(), "Tank start", Toast.LENGTH_SHORT).show();
                     isRunning = true;
                 }
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == turrentLeftButton) {
                 sendValue = TankControlData.TURRENT_LEFT;
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == turrentRightButton) {
                 sendValue = TankControlData.TURRENT_RIGHT;
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == turrentUpButton) {
                 sendValue = TankControlData.TURRENT_UP;
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == turrentDownButton) {
                 sendValue = TankControlData.TURRENT_DOWN;
-                writeToCharacteristic(sendValue);
+                writeToCharacteristic(sendValue,true);
             }
             if (view == qrButton) {
                 Dialog qrDialog = new Dialog(this);
@@ -382,9 +385,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void writeToCharacteristic(byte[] data) {
+    private void writeToCharacteristic(byte[] data, boolean updateUI) {
         bluetoothGattCharacteristicChl1.setValue(data);
-        dataDisplayTextView.setText(bytesToHex(data));
+        if (updateUI) {
+            dataDisplayTextView.setText(bytesToHex(data));
+        }
         if (bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristicChl1)) {
             Log.v(TAG, ("Write data:" + DataUtils.bytesToHex(data) + " on characteristic" + bluetoothGattCharacteristicChl1.getUuid() + " of service $service success"));
         } else {
