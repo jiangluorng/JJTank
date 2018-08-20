@@ -46,11 +46,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String EXTRAS_TANK = "TANK";
+    public static final String TANK_SPEED_DIRECTION_OFFSET = "SPEED_DIRECTION_OFFSET";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     public static final String EXTRAS_BLUETOOTH_DEVICE = "BLUETOOTH_DEVICE";
     private String tankName;
     private static final String JJCTRL_SERV_UUID = "0000FFF0";
     private static final String JJCTRL_CHNEL1_UUID = "0000FFF2";
+    private String[] speedDirectionOffset;
+
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattService bluetoothGattService;
     private boolean isRunning;
@@ -71,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton fireButton;
     private ImageButton settingButton;
     private ImageButton qrButton;
+    private ImageButton reconnectButton;
     private ImageButton bluetoothIndicator;
     private ImageButton bluetoothTxIndicator;
     private ImageButton bluetoothRxIndicator;
@@ -179,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fireButton = findViewById(R.id.fireButton);
         exitButton = findViewById(R.id.exitButton);
         settingButton = findViewById(R.id.settingButton);
+        reconnectButton = findViewById(R.id.reconnectButton);
         bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
         bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
         bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
@@ -202,12 +207,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gyroSwitchButton.setOnClickListener(this);
         switchButton.setOnClickListener(this);
         qrButton.setOnClickListener(this);
+        reconnectButton.setOnClickListener(this);
+        connectTank();
+        loadOffset();
+    }
 
-        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-        blueHandler.post(bluetoothBlinking);
-        sendingDataHandler.post(sendingDataRunnable);
-
+    private void loadOffset() {
+        SharedPreferences prefs = this.getSharedPreferences(
+                "com.jjstudio.jjtank", Context.MODE_PRIVATE);
+        speedDirectionOffset = prefs.getString(MainActivity.TANK_SPEED_DIRECTION_OFFSET, "0|0").split("\\|");
     }
 
     private void saveTank(String tankName, String mDeviceAddress) {
@@ -330,9 +338,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mServiceConnection);
+        disconnectTank();
+    }
+
+    private void disconnectTank() {
         mBluetoothLeService.disconnect();
+        unbindService(mServiceConnection);
         mBluetoothLeService = null;
+    }
+
+    private void connectTank(){
+        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+        blueHandler.post(bluetoothBlinking);
+        sendingDataHandler.post(sendingDataRunnable);
     }
 
     @Override
@@ -344,11 +363,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    mBluetoothLeService.disconnect();
-                    unbindService(mServiceConnection);
-                    mBluetoothLeService = null;
+                    disconnectTank();
                     final Intent intent = new Intent(MainActivity.this, SplashActivity.class);
-                    startActivityForResult(intent,0);
+                    startActivityForResult(intent, 0);
                 }
             });
             alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
@@ -367,7 +384,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
+                        disconnectTank();
                         final Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                        intent.putExtra(MainActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress);
+                        intent.putExtra(MainActivity.EXTRAS_TANK, tankName);
                         startActivity(intent);
                     }
                 });
@@ -441,6 +461,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 qrDialog.show();
             }
         }
+        if (view==reconnectButton){
+            connectTank();
+        }
+
     }
 
 

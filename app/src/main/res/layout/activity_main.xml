@@ -11,7 +11,7 @@
         android:id="@+id/loadingLayout"
         layout="@layout/selfdef_progress_dialog_layout"
         tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="114dp" />
+        tools:layout_editor_absoluteY="230dp" />
 
     <ProgressBar
         android:id="@+id/throttleProgressBar"
@@ -269,10 +269,10 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.976"
+        app:layout_constraintHorizontal_bias="0.908"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.428"
+        app:layout_constraintVertical_bias="0.265"
         app:srcCompat="@android:drawable/arrow_up_float" />
 
     <TextView
@@ -301,10 +301,10 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.927"
+        app:layout_constraintHorizontal_bias="0.915"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.427"
+        app:layout_constraintVertical_bias="0.423"
         app:srcCompat="@android:drawable/ic_menu_preferences" />
 
     <ImageButton
@@ -317,10 +317,10 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/loadingLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.855"
+        app:layout_constraintHorizontal_bias="0.842"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.428"
+        app:layout_constraintVertical_bias="0.425"
         app:srcCompat="@android:drawable/ic_menu_report_image" />
 
     <ImageButton
@@ -331,10 +331,26 @@
         android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.965"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="0.435"
         app:srcCompat="@android:drawable/ic_lock_power_off" />
+
+    <ImageButton
+        android:id="@+id/reconnectButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/loadingLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.907"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settingButton"
+        app:layout_constraintVertical_bias="0.008"
+        app:srcCompat="@android:drawable/ic_menu_rotate" />
 
 </android.support.constraint.ConstraintLayout>

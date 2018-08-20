@@ -13,7 +13,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.PointF;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -32,7 +31,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 import com.jjstudio.jjtank.adapter.TankAdapter;
 import com.jjstudio.jjtank.listener.RecyclerViewClickListener;
 import com.jjstudio.jjtank.model.StatusEnum;
@@ -42,7 +40,7 @@ import com.jjstudio.jjtank.model.TankControlData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashActivity extends AppCompatActivity implements LocationListener{
+public class SplashActivity extends AppCompatActivity implements LocationListener {
     private static final String TAG = SplashActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -65,8 +63,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private LocationManager locationManager;
     private String lastConnectedTankName;
     private String lastConnectedTankAddress;
-
-    String provider;
+    private String provider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,12 +101,13 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     }
 
 
-    private void initLastConnecttedTank(){
+    private void initLastConnecttedTank() {
         SharedPreferences prefs = this.getSharedPreferences(
                 "com.jjstudio.jjtank", Context.MODE_PRIVATE);
-         lastConnectedTankName =  prefs.getString(MainActivity.EXTRAS_TANK,"");
-         lastConnectedTankAddress =  prefs.getString(MainActivity.EXTRAS_DEVICE_ADDRESS,"");
-        if (!lastConnectedTankName.equals("")&&!lastConnectedTankAddress.equals("")){
+        lastConnectedTankName = prefs.getString(MainActivity.EXTRAS_TANK, "");
+        lastConnectedTankAddress = prefs.getString(MainActivity.EXTRAS_DEVICE_ADDRESS, "");
+
+        if (!lastConnectedTankName.equals("") && !lastConnectedTankAddress.equals("")) {
             tankUUIDs.add(lastConnectedTankAddress);
             tankList.add(new Tank(lastConnectedTankName, lastConnectedTankAddress, StatusEnum.LastConnected, null));
         }
@@ -307,7 +305,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
                 bluetoothLeScanner.stopScan(leScanCallback);
                 tankInfoTextView.setText("Scanning stopped.");
                 rescanButton.setEnabled(true);
-                mScanning=false;
+                mScanning = false;
 
             }
         });
@@ -364,7 +362,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             if (deviceName != null && !tankUUIDs.contains(deviceAddress) && (TankControlData.isTest || deviceName != null && deviceName.startsWith("JJtk"))) {
                 tankUUIDs.add(deviceAddress);
                 tankList.add(new Tank(deviceName, deviceAddress, StatusEnum.Disconnected, bluetoothDevice));
-                tankInfoTextView.append("Found device  " + deviceName + " -  " + deviceAddress +"\n");
+                tankInfoTextView.append("Found device  " + deviceName + " -  " + deviceAddress + "\n");
             }
         }
     };
