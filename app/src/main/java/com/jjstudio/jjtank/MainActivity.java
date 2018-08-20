@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton soundSwitchButton;
     private ImageButton gyroSwitchButton;
     private ImageButton fireButton;
+    private ImageButton settingButton;
     private ImageButton qrButton;
     private ImageButton bluetoothIndicator;
     private ImageButton bluetoothTxIndicator;
@@ -177,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gyroSwitchButton = findViewById(R.id.switch4);
         fireButton = findViewById(R.id.fireButton);
         exitButton = findViewById(R.id.exitButton);
+        settingButton = findViewById(R.id.settingButton);
         bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
         bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
         bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
@@ -189,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         fireButton.setOnClickListener(this);
         exitButton.setOnClickListener(this);
+        settingButton.setOnClickListener(this);
         turrentLeftButton.setOnClickListener(this);
         turrentUpButton.setOnClickListener(this);
         turrentRightButton.setOnClickListener(this);
@@ -345,7 +348,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     unbindService(mServiceConnection);
                     mBluetoothLeService = null;
                     final Intent intent = new Intent(MainActivity.this, SplashActivity.class);
-                    startActivity(intent);                }
+                    startActivityForResult(intent,0);
+                }
             });
             alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
@@ -355,7 +359,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             alertDialog.show();
         }
-            if (isConnectted) {
+        if (isConnectted) {
+            if (view == settingButton) {
+                AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+                alertDialog.setTitle("Go to setting");
+                alertDialog.setMessage("Do you want to go to  settings?");
+
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        final Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "OK", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                alertDialog.show();
+            }
             byte[] sendValue;
             if (view == fireButton) {
                 if (isConnectted) {
