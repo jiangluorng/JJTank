@@ -67,4 +67,16 @@ public class ScanActivity extends AppCompatActivity implements QRCodeReaderView.
         // Use this function to set back camera preview
         qrCodeReaderView.setBackCamera();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        qrCodeReaderView.startCamera();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        qrCodeReaderView.stopCamera();
+    }
 }

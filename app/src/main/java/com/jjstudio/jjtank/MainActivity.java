@@ -1,5 +1,6 @@
 package com.jjstudio.jjtank;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -7,9 +8,11 @@ import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl4;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl5;
 
+    private ImageButton exitButton;
     private ImageButton switchButton;
     private ImageButton lightSwitchButton;
     private ImageButton mgSwitchButton;
@@ -146,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void run() {
             if (speedDirectionData != null) {
-                writeToCharacteristic(speedDirectionData,false);
+                writeToCharacteristic(speedDirectionData, false);
             }
             sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
         }
@@ -172,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         soundSwitchButton = findViewById(R.id.switch3);
         gyroSwitchButton = findViewById(R.id.switch4);
         fireButton = findViewById(R.id.fireButton);
+        exitButton = findViewById(R.id.exitButton);
         bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
         bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
         bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
@@ -183,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         fireButton.setOnClickListener(this);
+        exitButton.setOnClickListener(this);
         turrentLeftButton.setOnClickListener(this);
         turrentUpButton.setOnClickListener(this);
         turrentRightButton.setOnClickListener(this);
@@ -198,6 +204,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         blueHandler.post(bluetoothBlinking);
         sendingDataHandler.post(sendingDataRunnable);
+
+    }
+
+    private void saveTank(String tankName, String mDeviceAddress) {
+        SharedPreferences prefs = this.getSharedPreferences(
+                "com.jjstudio.jjtank", Context.MODE_PRIVATE);
+        prefs.edit().putString(MainActivity.EXTRAS_TANK, tankName).apply();
+        prefs.edit().putString(MainActivity.EXTRAS_DEVICE_ADDRESS, mDeviceAddress).apply();
     }
 
     private void checkSensorManager() {
@@ -314,17 +328,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         unbindService(mServiceConnection);
+        mBluetoothLeService.disconnect();
         mBluetoothLeService = null;
     }
 
     @Override
     public void onClick(View view) {
-        if (isConnectted) {
+        if (view == exitButton) {
+            AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+            alertDialog.setTitle("Exit controller");
+            alertDialog.setMessage("Do you want to exit controller?");
+
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    mBluetoothLeService.disconnect();
+                    unbindService(mServiceConnection);
+                    mBluetoothLeService = null;
+                    final Intent intent = new Intent(MainActivity.this, SplashActivity.class);
+                    startActivity(intent);                }
+            });
+            alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Toast.makeText(getApplicationContext(), "Good choice", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            alertDialog.show();
+        }
+            if (isConnectted) {
             byte[] sendValue;
             if (view == fireButton) {
                 if (isConnectted) {
                     sendValue = TankControlData.FIRE;
-                    writeToCharacteristic(sendValue,true);
+                    writeToCharacteristic(sendValue, true);
                 }
             }
             if (view == lightSwitchButton || view == mgSwitchButton || view == soundSwitchButton || view == gyroSwitchButton) {
@@ -339,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sendValue = TankControlData.SWT_1_OFF;
                     btn.setTag(false);
                 }
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == switchButton) {
                 if (isRunning) {
@@ -351,23 +387,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(getApplicationContext(), "Tank start", Toast.LENGTH_SHORT).show();
                     isRunning = true;
                 }
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == turrentLeftButton) {
                 sendValue = TankControlData.TURRENT_LEFT;
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == turrentRightButton) {
                 sendValue = TankControlData.TURRENT_RIGHT;
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == turrentUpButton) {
                 sendValue = TankControlData.TURRENT_UP;
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == turrentDownButton) {
                 sendValue = TankControlData.TURRENT_DOWN;
-                writeToCharacteristic(sendValue,true);
+                writeToCharacteristic(sendValue, true);
             }
             if (view == qrButton) {
                 Dialog qrDialog = new Dialog(this);
@@ -451,6 +487,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         loadingLayout.setVisibility(View.GONE);
         checkSensorManager();
         isConnectted = true;
+        saveTank(tankName, mDeviceAddress);
     }
 
     private BluetoothLeService mBluetoothLeService;

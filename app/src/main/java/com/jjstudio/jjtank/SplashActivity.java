@@ -11,6 +11,7 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Criteria;
@@ -41,7 +42,7 @@ import com.jjstudio.jjtank.model.TankControlData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplashActivity extends AppCompatActivity implements LocationListener, QRCodeReaderView.OnQRCodeReadListener {
+public class SplashActivity extends AppCompatActivity implements LocationListener{
     private static final String TAG = SplashActivity.class.getSimpleName();
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -61,7 +62,9 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private long BLE_SCAN_STOP_DELAY = 10000; //10 seconds for blescaner
     private Context context;
     private TextView tankInfoTextView;
-    LocationManager locationManager;
+    private LocationManager locationManager;
+    private String lastConnectedTankName;
+    private String lastConnectedTankAddress;
 
     String provider;
 
@@ -97,6 +100,19 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
         provider = locationManager.getBestProvider(new Criteria(), false);
         checkLocationPermission();
         initBluetooth();
+        initLastConnecttedTank();
+    }
+
+
+    private void initLastConnecttedTank(){
+        SharedPreferences prefs = this.getSharedPreferences(
+                "com.jjstudio.jjtank", Context.MODE_PRIVATE);
+         lastConnectedTankName =  prefs.getString(MainActivity.EXTRAS_TANK,"");
+         lastConnectedTankAddress =  prefs.getString(MainActivity.EXTRAS_DEVICE_ADDRESS,"");
+        if (!lastConnectedTankName.equals("")&&!lastConnectedTankAddress.equals("")){
+            tankUUIDs.add(lastConnectedTankAddress);
+            tankList.add(new Tank(lastConnectedTankName, lastConnectedTankAddress, StatusEnum.LastConnected, null));
+        }
     }
 
     @Override
@@ -128,7 +144,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     private View.OnClickListener rescanButtonOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            view.setVisibility(View.INVISIBLE);
+            view.setEnabled(false);
             startScanning();
         }
     };
@@ -216,11 +232,6 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     }
 
     @Override
-    public void onQRCodeRead(String text, PointF[] points) {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -267,8 +278,6 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             });
 
             alertDialog.show();
-        } else {
-            startScanning();
         }
     }
 
@@ -277,7 +286,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
     }
 
     private void startScanning() {
-        rescanButton.setVisibility(View.INVISIBLE);
+        rescanButton.setEnabled(false);
         tankInfoTextView.setText("Scanning tanks...");
         delayHandler = new Handler();
         delayHandler.postDelayed(stopBleRunnable, BLE_SCAN_STOP_DELAY);
@@ -297,7 +306,8 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             public void run() {
                 bluetoothLeScanner.stopScan(leScanCallback);
                 tankInfoTextView.setText("Scanning stopped.");
-                rescanButton.setVisibility(View.VISIBLE);
+                rescanButton.setEnabled(true);
+                mScanning=false;
 
             }
         });
@@ -354,7 +364,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
             if (deviceName != null && !tankUUIDs.contains(deviceAddress) && (TankControlData.isTest || deviceName != null && deviceName.startsWith("JJtk"))) {
                 tankUUIDs.add(deviceAddress);
                 tankList.add(new Tank(deviceName, deviceAddress, StatusEnum.Disconnected, bluetoothDevice));
-                tankInfoTextView.append("\nfound device... " + deviceName + " -  " + deviceAddress);
+                tankInfoTextView.append("Found device  " + deviceName + " -  " + deviceAddress +"\n");
             }
         }
     };
