@@ -16,6 +16,7 @@
     </style>
 
     <style name="MyTextViewStyle" parent="android:Widget.TextView">
-        <item name="android:textColor">#F3F42B</item>
+        <!--<item name="android:textColor">#F3F42B</item>-->
+        <item name="android:textColor">@color/colorPrimary</item>
     </style>
 </resources>
