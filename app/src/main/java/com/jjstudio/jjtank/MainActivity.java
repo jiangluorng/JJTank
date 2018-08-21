@@ -84,7 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton turrentDownButton;
     private ProgressBar throttleProgressBar;
     private TextView dataDisplayTextView;
-
+    private TextView speedDirectionDataText;
+    private TextView  receivedData;
 
     private TextView statusTextView;
     private byte[] speedDirectionData;
@@ -173,6 +174,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
         dataDisplayTextView = findViewById(R.id.dataDisplayTextView);
+        receivedData = findViewById(R.id.receivedData);
+        speedDirectionDataText= findViewById(R.id.speedDirectionDataText);
         throttleProgressBar = findViewById(R.id.throttleProgressBar);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
@@ -245,27 +248,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
                 }
-            }, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+            }, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), txBlinkInterval);
         }
     }
 
-    // TODO calculate speed and directions
-    private void calculateSpeedDirectionData(float ax, float ay) {
+    private void calculateSpeedDirectionData(int speed, int direction) {
         speedDirectionData = new byte[5];
         speedDirectionData[0] = (byte) 0xA5;
-        speedDirectionData[1] = (byte) ax;
-        speedDirectionData[2] = (byte) ay;
+        speedDirectionData[1] = (byte) 0x00;
+        speedDirectionData[2] = (byte) 0x00;
         speedDirectionData[3] = (byte) 0xA5;
         speedDirectionData[4] = (byte) 0xAA;
-        int speed = getSpeed(ax);
-        int direction = getDirection(ay);
-        if (speed > 0) {
+        if (speed != 0 && direction == 0) {
+            if (speed>0){
+                speedDirectionData[1] = (byte) speed;
+                speedDirectionData[2] = (byte) speed;
+            }else{
+                speedDirectionData[1] = (byte) (40-speed);
+                speedDirectionData[2] = (byte) (40-speed);
 
+            }
+        } else if (speed == 0 && direction != 0) {
+            //右边原地打转
+            if (direction<-25){
+                speedDirectionData[1] = (byte) 0x32;
+                speedDirectionData[2] = (byte) 0x72;
+            }else if (direction<-25){//左边原地
+                speedDirectionData[1] = (byte) 0x72;
+                speedDirectionData[2] = (byte) 0x32;
+            }
+            else if (direction>0){//左转
+                speedDirectionData[1] = (byte) 0x00;
+                speedDirectionData[2] = (byte) direction;
+            }else {//右转
+                speedDirectionData[1] = (byte) (-direction);
+                speedDirectionData[2] = (byte) 0x00;
+            }
         } else {
-
-        }
-        if (direction > 0) {
-        } else {
+            if (direction > 0) {//左转行进
+                speedDirectionData[1] = (byte) 0x32;
+                speedDirectionData[2] = (byte) (32-direction);
+            } else {//右转前进
+                speedDirectionData[1] = (byte) (32+direction);
+                speedDirectionData[2] = (byte) 0x32;
+            }
         }
     }
 
@@ -277,6 +303,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int speed = getSpeed(ax);
         int direction = getDirection(ay);
+
+        speed = speed+ Integer.parseInt(speedDirectionOffset[0]);
+        direction = direction + Integer.parseInt(speedDirectionOffset[1]);
+
         if (speed > 0) {
             movement = "Forward, ";
         } else if (speed < 0) {
@@ -292,13 +322,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 movement += " Left, ";
             }
         }
-        if (speed != 0 || direction != 0) {
-            calculateSpeedDirectionData(ax, ay);
+        if (speed != 0 && direction != 0) {
+            calculateSpeedDirectionData(speed, direction);
+            speedDirectionDataText.setText(bytesToHex(speedDirectionData));
         } else {
             speedDirectionData = null;
         }
-        movement = movement + "Speed " + getSpeed(ax);
-        movement = movement + " Direction " + getDirection(ay);
+        movement = movement + "Speed " + speed;
+        movement = movement + " Direction " + direction;
         return movement;
     }
 
@@ -347,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBluetoothLeService = null;
     }
 
-    private void connectTank(){
+    private void connectTank() {
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         blueHandler.post(bluetoothBlinking);
@@ -461,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 qrDialog.show();
             }
         }
-        if (view==reconnectButton){
+        if (view == reconnectButton) {
             connectTank();
         }
 
@@ -509,9 +540,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void displayData(String data) {
+    private void displayReceivedData(String data) {
         if (data != null) {
-            statusTextView.setText(data);
+            receivedData.setText(data);
         }
     }
 
@@ -582,7 +613,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 bluetoothGatt = mBluetoothLeService.getmBluetoothGatt();
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                displayReceivedData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
         }
     };

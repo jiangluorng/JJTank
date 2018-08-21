@@ -228,19 +228,19 @@
 
     <TextView
         android:id="@+id/statusTextView"
-        android:layout_width="333dp"
-        android:layout_height="39dp"
+        android:layout_width="336dp"
+        android:layout_height="24dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="This is status panel"
+        android:text="Tank is going to run..."
         android:textColor="@android:color/holo_blue_light"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.187" />
+        app:layout_constraintVertical_bias="0.132" />
 
     <ImageButton
         android:id="@+id/switch1"
@@ -269,26 +269,26 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.921"
+        app:layout_constraintHorizontal_bias="0.92"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.264"
+        app:layout_constraintVertical_bias="0.242"
         app:srcCompat="@android:drawable/arrow_up_float" />
 
     <TextView
         android:id="@+id/dataDisplayTextView"
-        android:layout_width="333dp"
-        android:layout_height="44dp"
+        android:layout_width="336dp"
+        android:layout_height="24dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="This is BlueTooth data"
+        android:text="Data data data..."
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.333"
+        app:layout_constraintTop_toBottomOf="@+id/speedDirectionDataText"
+        app:layout_constraintVertical_bias="0.0"
         tools:textColor="?android:attr/textColorLink" />
 
     <ImageButton
@@ -348,5 +348,33 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@android:drawable/ic_menu_rotate" />
+
+    <TextView
+        android:id="@+id/speedDirectionDataText"
+        android:layout_width="336dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Move controller please..."
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statusTextView" />
+
+    <TextView
+        android:id="@+id/receivedData"
+        android:layout_width="336dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Received data..."
+        app:layout_constraintBottom_toBottomOf="@+id/loadingLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="@+id/loadingLayout"
+        app:layout_constraintTop_toBottomOf="@+id/dataDisplayTextView"
+        app:layout_constraintVertical_bias="0.004" />
 
 </android.support.constraint.ConstraintLayout>
