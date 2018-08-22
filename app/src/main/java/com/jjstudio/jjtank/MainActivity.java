@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void run() {
             if (speedDirectionData != null) {
                 writeToCharacteristic(speedDirectionData, false);
+                speedDirectionDataText.setText("Speed and direction: "+bytesToHex(speedDirectionData));
+
             }
             sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
         }
@@ -273,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (direction<-25){
                 speedDirectionData[1] = (byte) 0x32;
                 speedDirectionData[2] = (byte) 0x72;
-            }else if (direction<-25){//左边原地
+            }else if (direction>25){//左边原地
                 speedDirectionData[1] = (byte) 0x72;
                 speedDirectionData[2] = (byte) 0x32;
             }
@@ -322,9 +324,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 movement += " Left, ";
             }
         }
-        if (speed != 0 && direction != 0) {
+        if (speed != 0 || direction != 0) {
             calculateSpeedDirectionData(speed, direction);
-            speedDirectionDataText.setText(bytesToHex(speedDirectionData));
         } else {
             speedDirectionData = null;
         }
@@ -338,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private int getDirection(float ay) {
-        return (int) (ay + 5) * 5;
+        return (int) ay  * 5;
     }
 
     @Override
