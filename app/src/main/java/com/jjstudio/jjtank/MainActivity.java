@@ -174,8 +174,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void run() {
             if (turrentData != null && isSendingTurretData) {
-                writeToCharacteristic(turrentData, true);
-//                statusTextView.setText("Turret data: " + bytesToHex(turrentData));
+                writeToCharacteristic(turrentData, false);
+                dataDisplayTextView.setText("Turret data: " + bytesToHex(turrentData));
 
             }
             sendingTurretHandler.postDelayed(sendingTurretRunnable, blueBlinkInterval);
@@ -554,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             if (view == turretLeftButton || view == turretRightButton || view == turretUpButton||view == turretDownButton) {
                 isSendingTurretData = false;
-                Toast.makeText(getApplicationContext(), "This button doesn't support click!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Turret move!", Toast.LENGTH_SHORT).show();
             }
 
             if (view == qrButton) {
