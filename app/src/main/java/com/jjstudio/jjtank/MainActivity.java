@@ -25,8 +25,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -42,7 +44,7 @@ import com.jjstudio.jjtank.util.DataUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String EXTRAS_TANK = "TANK";
@@ -78,27 +80,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton bluetoothIndicator;
     private ImageButton bluetoothTxIndicator;
     private ImageButton bluetoothRxIndicator;
-    private ImageButton turrentLeftButton;
-    private ImageButton turrentUpButton;
-    private ImageButton turrentRightButton;
-    private ImageButton turrentDownButton;
+    private Button turretLeftButton;
+    private Button turretUpButton;
+    private Button turretRightButton;
+    private Button turretDownButton;
     private ProgressBar throttleProgressBar;
     private TextView dataDisplayTextView;
     private TextView speedDirectionDataText;
-    private TextView  receivedData;
+    private TextView receivedData;
 
     private TextView statusTextView;
-    private byte[] speedDirectionData;
+    protected byte[] speedDirectionData;
+    protected byte[] turrentData;
+
     private int blueBlinkInterval = 500; // 0.5 seconds by default
     private int txBlinkInterval = 200; // 0.5 seconds by default
 
 
     private Handler sendingDataHandler = new Handler();
+    private Handler sendingTurretHandler = new Handler();
     private Handler blueHandler = new Handler();
     private Handler blueTxHandler = new Handler();
     private Handler blueRxHandler = new Handler();
 
     private boolean isBluetoothBlinking;
+    private boolean isSendingTurretData;
     private Runnable bluetoothBlinking = new Runnable() {
         @Override
         public void run() {
@@ -157,10 +163,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void run() {
             if (speedDirectionData != null) {
                 writeToCharacteristic(speedDirectionData, false);
-                speedDirectionDataText.setText("Speed and direction: "+bytesToHex(speedDirectionData));
+                speedDirectionDataText.setText("Speed and direction: " + bytesToHex(speedDirectionData));
 
             }
             sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
+        }
+    };
+
+    private Runnable sendingTurretRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (turrentData != null && isSendingTurretData) {
+                writeToCharacteristic(turrentData, true);
+//                statusTextView.setText("Turret data: " + bytesToHex(turrentData));
+
+            }
+            sendingTurretHandler.postDelayed(sendingTurretRunnable, blueBlinkInterval);
         }
     };
 
@@ -172,12 +190,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDeviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
         tankName = getIntent().getExtras().getString(EXTRAS_TANK);
         super.onCreate(savedInstanceState);
+        // 禁止休眠
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+//                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
         loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
         dataDisplayTextView = findViewById(R.id.dataDisplayTextView);
         receivedData = findViewById(R.id.receivedData);
-        speedDirectionDataText= findViewById(R.id.speedDirectionDataText);
+        speedDirectionDataText = findViewById(R.id.speedDirectionDataText);
         throttleProgressBar = findViewById(R.id.throttleProgressBar);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
@@ -192,20 +213,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
         bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
         bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
-        turrentLeftButton = findViewById(R.id.turrentLeftButton);
-        turrentUpButton = findViewById(R.id.turrentUpButton);
-        turrentRightButton = findViewById(R.id.turrentRightButton);
-        turrentDownButton = findViewById(R.id.turrentDownButton);
+        turretLeftButton = findViewById(R.id.turretLeftButton);
+        turretUpButton = findViewById(R.id.turretUpButton);
+        turretRightButton = findViewById(R.id.turretRightButton);
+        turretDownButton = findViewById(R.id.turretDownButton);
         qrButton = findViewById(R.id.qrButton);
 
 
         fireButton.setOnClickListener(this);
         exitButton.setOnClickListener(this);
         settingButton.setOnClickListener(this);
-        turrentLeftButton.setOnClickListener(this);
-        turrentUpButton.setOnClickListener(this);
-        turrentRightButton.setOnClickListener(this);
-        turrentDownButton.setOnClickListener(this);
+        turretLeftButton.setOnClickListener(this);
+        turretUpButton.setOnClickListener(this);
+        turretRightButton.setOnClickListener(this);
+        turretDownButton.setOnClickListener(this);
+        turretLeftButton.setOnLongClickListener(this);
+        turretUpButton.setOnLongClickListener(this);
+        turretRightButton.setOnLongClickListener(this);
+        turretDownButton.setOnLongClickListener(this);
         lightSwitchButton.setOnClickListener(this);
         mgSwitchButton.setOnClickListener(this);
         soundSwitchButton.setOnClickListener(this);
@@ -216,6 +241,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         connectTank();
         loadOffset();
     }
+
+
 
     private void loadOffset() {
         SharedPreferences prefs = this.getSharedPreferences(
@@ -254,47 +281,84 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void calculateSpeedDirectionData(int speed, int direction) {
+    protected void calculateSpeedDirectionData(int speed, int direction) {
         speedDirectionData = new byte[5];
         speedDirectionData[0] = (byte) 0xA5;
-        speedDirectionData[1] = (byte) 0x00;
+        speedDirectionData[1] = (byte) 0xC5;
         speedDirectionData[2] = (byte) 0x00;
-        speedDirectionData[3] = (byte) 0xA5;
+        speedDirectionData[3] = (byte) 0x00;
         speedDirectionData[4] = (byte) 0xAA;
-        if (speed != 0 && direction == 0) {
-            if (speed>0){
-                speedDirectionData[1] = (byte) speed;
-                speedDirectionData[2] = (byte) speed;
-            }else{
-                speedDirectionData[1] = (byte) (40-speed);
-                speedDirectionData[2] = (byte) (40-speed);
 
+        //不响应区
+        if ((Math.abs(speed) < 10) && (Math.abs(direction) < 15)) {
+            speedDirectionData[2] = 0;
+            speedDirectionData[3] = 0;
+        }
+
+        //直线前进, 后退
+        else if (speed != 0 && Math.abs(direction) < 10) {
+            if (speed > 0) {
+                speedDirectionData[2] = (byte) speed;
+                speedDirectionData[3] = (byte) speed;
+            } else {
+                speedDirectionData[2] = (byte) (0x40 - speed);
+                speedDirectionData[3] = (byte) (0x40 - speed);
             }
-        } else if (speed == 0 && direction != 0) {
-            //右边原地打转
-            if (direction<-25){
-                speedDirectionData[1] = (byte) 0x32;
-                speedDirectionData[2] = (byte) 0x72;
-            }else if (direction>25){//左边原地
-                speedDirectionData[1] = (byte) 0x72;
-                speedDirectionData[2] = (byte) 0x32;
-            }
-            else if (direction>0){//左转
-                speedDirectionData[1] = (byte) 0x00;
-                speedDirectionData[2] = (byte) direction;
-            }else {//右转
-                speedDirectionData[1] = (byte) (-direction);
-                speedDirectionData[2] = (byte) 0x00;
-            }
-        } else {
-            if (direction > 0) {//左转行进
-                speedDirectionData[1] = (byte) 0x32;
-                speedDirectionData[2] = (byte) (32-direction);
-            } else {//右转前进
-                speedDirectionData[1] = (byte) (32+direction);
-                speedDirectionData[2] = (byte) 0x32;
+
+            //差速运动
+        } else if (speed != 0 && Math.abs(direction) < 50) {
+            if (speed > 0) {
+                if (direction > 0) {        //差速前左转
+                    speedDirectionData[2] = (byte) (speed * 2 / 3);
+                    speedDirectionData[3] = (byte) speed;
+                } else {                    //差速前右转
+                    speedDirectionData[2] = (byte) speed;
+                    speedDirectionData[3] = (byte) (speed * 2 / 3);
+                }
+            } else if (speed < 0) {
+                if (direction > 0) {        //差速后左转
+                    speedDirectionData[2] = (byte) (0x40 - speed * 2 / 3);
+                    speedDirectionData[3] = (byte) (0 - speed);
+                } else {                    //差速后右转
+                    speedDirectionData[2] = (byte) (0x40 - speed);
+                    speedDirectionData[3] = (byte) (0x40 - speed * 2 / 3);
+                }
             }
         }
+
+        //原地转弯
+        else if (Math.abs(speed) < 10) {
+            if (direction > 0) {        //原地左转
+                speedDirectionData[2] = 0x7A;
+                speedDirectionData[3] = 0x3A;
+            } else {                    //原地右转
+                speedDirectionData[2] = 0x7A;
+                speedDirectionData[3] = 0x3A;
+            }
+        }
+
+        //单边锁死转弯
+        else {
+            if (speed > 0) {
+                if (direction > 0) {        //左死右前
+                    speedDirectionData[2] = 0x00;
+                    speedDirectionData[3] = (byte) speed;
+                } else {                    //左前右死
+                    speedDirectionData[2] = (byte) speed;
+                    speedDirectionData[3] = 0x00;
+                }
+            } else if (speed < 0) {
+                if (direction > 0) {        //左死右后
+                    speedDirectionData[2] = 0x00;
+                    speedDirectionData[3] = (byte) (0 - speed);
+                } else {                    //左后右死
+                    speedDirectionData[2] = (byte) (0 - speed);
+                    speedDirectionData[3] = 0x00;
+                }
+            }
+
+        }
+
     }
 
     private String moveAndReturnValue(float ax, float ay, float az) {
@@ -306,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int speed = getSpeed(ax);
         int direction = getDirection(ay);
 
-        speed = speed+ Integer.parseInt(speedDirectionOffset[0]);
+        speed = speed + Integer.parseInt(speedDirectionOffset[0]);
         direction = direction + Integer.parseInt(speedDirectionOffset[1]);
 
         if (speed > 0) {
@@ -339,7 +403,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private int getDirection(float ay) {
-        return (int) ay  * 5;
+        return (int) ay * 5;
     }
 
     @Override
@@ -384,7 +448,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
         blueHandler.post(bluetoothBlinking);
         sendingDataHandler.post(sendingDataRunnable);
+        sendingTurretHandler.post(sendingTurretRunnable);
     }
+
+    @Override
+    public boolean onLongClick(View view) {
+        if (view == turretLeftButton) {
+            turrentData = TankControlData.TURRENT_LEFT;
+            isSendingTurretData=true;
+        }
+        if (view == turretRightButton) {
+            turrentData = TankControlData.TURRENT_RIGHT;
+            isSendingTurretData=true;
+        }
+        if (view == turretUpButton) {
+            turrentData = TankControlData.TURRENT_UP;
+            isSendingTurretData=true;
+        }
+        if (view == turretDownButton) {
+            turrentData = TankControlData.TURRENT_DOWN;
+            isSendingTurretData=true;
+        }
+        return false;
+    }
+
+
 
     @Override
     public void onClick(View view) {
@@ -464,22 +552,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 writeToCharacteristic(sendValue, true);
             }
-            if (view == turrentLeftButton) {
-                sendValue = TankControlData.TURRENT_LEFT;
-                writeToCharacteristic(sendValue, true);
+            if (view == turretLeftButton || view == turretRightButton || view == turretUpButton||view == turretDownButton) {
+                isSendingTurretData = false;
+                Toast.makeText(getApplicationContext(), "This button doesn't support click!", Toast.LENGTH_SHORT).show();
             }
-            if (view == turrentRightButton) {
-                sendValue = TankControlData.TURRENT_RIGHT;
-                writeToCharacteristic(sendValue, true);
-            }
-            if (view == turrentUpButton) {
-                sendValue = TankControlData.TURRENT_UP;
-                writeToCharacteristic(sendValue, true);
-            }
-            if (view == turrentDownButton) {
-                sendValue = TankControlData.TURRENT_DOWN;
-                writeToCharacteristic(sendValue, true);
-            }
+
             if (view == qrButton) {
                 Dialog qrDialog = new Dialog(this);
                 qrDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
