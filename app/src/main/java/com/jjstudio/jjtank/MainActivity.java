@@ -554,7 +554,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             if (view == turretLeftButton || view == turretRightButton || view == turretUpButton||view == turretDownButton) {
                 isSendingTurretData = false;
-                Toast.makeText(getApplicationContext(), "Turret move!", Toast.LENGTH_SHORT).show();
             }
 
             if (view == qrButton) {
