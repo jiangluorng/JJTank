@@ -177,6 +177,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (turrentData != null && isSendingTurretData) {
                 writeToCharacteristic(turrentData, false);
                 dataDisplayTextView.setText("Turret data: " + bytesToHex(turrentData));
+            } else {
+                dataDisplayTextView.setText("Turret stopped.");
 
             }
             sendingTurretHandler.postDelayed(sendingTurretRunnable, blueBlinkInterval);
