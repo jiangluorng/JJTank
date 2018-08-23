@@ -25,9 +25,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
@@ -191,10 +191,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDeviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
         tankName = getIntent().getExtras().getString(EXTRAS_TANK);
         super.onCreate(savedInstanceState);
-        // 禁止休眠
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-//                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // 禁止屏幕休眠
         setContentView(R.layout.activity_main);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         loadingLayout = findViewById(R.id.loadingLayout);
         statusTextView = findViewById(R.id.statusTextView);
         dataDisplayTextView = findViewById(R.id.dataDisplayTextView);
@@ -293,6 +293,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         speed = speed + Integer.parseInt(speedDirectionOffset[0]);
         direction = direction + Integer.parseInt(speedDirectionOffset[1]);
 
+        if (speed != 0 || direction != 0) {
+            byte[] calculateSpeedDirectionData = ControlUtil.calculateSpeedDirectionData(speed, direction);
+            speedDirectionData = new byte[5];
+            speedDirectionData[0] = calculateSpeedDirectionData[0];
+            speedDirectionData[1] = calculateSpeedDirectionData[1];
+            speedDirectionData[2] = calculateSpeedDirectionData[2];
+            speedDirectionData[3] = calculateSpeedDirectionData[3];
+            speedDirectionData[4] = calculateSpeedDirectionData[4];
+            speed = calculateSpeedDirectionData[5];
+            direction = calculateSpeedDirectionData[6];
+        } else {
+            speedDirectionData = null;
+        }
+
         if (speed > 0) {
             movement = "Forward, ";
         } else if (speed < 0) {
@@ -308,13 +322,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 movement += " Left, ";
             }
         }
-        if (speed != 0 || direction != 0) {
-            speedDirectionData = ControlUtil.calculateSpeedDirectionData(speed, direction);
-        } else {
-            speedDirectionData = null;
-        }
         movement = movement + "Speed " + speed;
         movement = movement + " Direction " + direction;
+        Log.d(TAG, movement);
         return movement;
     }
 
@@ -322,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int getSpeed(float ax) {
         return (int) ((0f - ax) * 5f);
     }
+
     // direction is from - 50 to 50
     private int getDirection(float ay) {
         return (int) (ay * 5f);
