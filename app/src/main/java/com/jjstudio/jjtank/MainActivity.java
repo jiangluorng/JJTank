@@ -39,6 +39,7 @@ import android.widget.Toast;
 import com.github.sumimakito.awesomeqr.AwesomeQRCode;
 import com.jjstudio.jjtank.model.TankControlData;
 import com.jjstudio.jjtank.service.BluetoothLeService;
+import com.jjstudio.jjtank.util.ControlUtil;
 import com.jjstudio.jjtank.util.DataUtils;
 
 import java.util.ArrayList;
@@ -243,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
     private void loadOffset() {
         SharedPreferences prefs = this.getSharedPreferences(
                 "com.jjstudio.jjtank", Context.MODE_PRIVATE);
@@ -281,86 +281,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    protected void calculateSpeedDirectionData(int speed, int direction) {
-        speedDirectionData = new byte[5];
-        speedDirectionData[0] = (byte) 0xA5;
-        speedDirectionData[1] = (byte) 0xC5;
-        speedDirectionData[2] = (byte) 0x00;
-        speedDirectionData[3] = (byte) 0x00;
-        speedDirectionData[4] = (byte) 0xAA;
-
-        //不响应区
-        if ((Math.abs(speed) < 10) && (Math.abs(direction) < 15)) {
-            speedDirectionData[2] = 0;
-            speedDirectionData[3] = 0;
-        }
-
-        //直线前进, 后退
-        else if (speed != 0 && Math.abs(direction) < 10) {
-            if (speed > 0) {
-                speedDirectionData[2] = (byte) speed;
-                speedDirectionData[3] = (byte) speed;
-            } else {
-                speedDirectionData[2] = (byte) (0x40 - speed);
-                speedDirectionData[3] = (byte) (0x40 - speed);
-            }
-
-            //差速运动
-        } else if (speed != 0 && Math.abs(direction) < 50) {
-            if (speed > 0) {
-                if (direction > 0) {        //差速前左转
-                    speedDirectionData[2] = (byte) (speed * 2 / 3);
-                    speedDirectionData[3] = (byte) speed;
-                } else {                    //差速前右转
-                    speedDirectionData[2] = (byte) speed;
-                    speedDirectionData[3] = (byte) (speed * 2 / 3);
-                }
-            } else if (speed < 0) {
-                if (direction > 0) {        //差速后左转
-                    speedDirectionData[2] = (byte) (0x40 - speed * 2 / 3);
-                    speedDirectionData[3] = (byte) (0 - speed);
-                } else {                    //差速后右转
-                    speedDirectionData[2] = (byte) (0x40 - speed);
-                    speedDirectionData[3] = (byte) (0x40 - speed * 2 / 3);
-                }
-            }
-        }
-
-        //原地转弯
-        else if (Math.abs(speed) < 10) {
-            if (direction > 0) {        //原地左转
-                speedDirectionData[2] = 0x7A;
-                speedDirectionData[3] = 0x3A;
-            } else {                    //原地右转
-                speedDirectionData[2] = 0x7A;
-                speedDirectionData[3] = 0x3A;
-            }
-        }
-
-        //单边锁死转弯
-        else {
-            if (speed > 0) {
-                if (direction > 0) {        //左死右前
-                    speedDirectionData[2] = 0x00;
-                    speedDirectionData[3] = (byte) speed;
-                } else {                    //左前右死
-                    speedDirectionData[2] = (byte) speed;
-                    speedDirectionData[3] = 0x00;
-                }
-            } else if (speed < 0) {
-                if (direction > 0) {        //左死右后
-                    speedDirectionData[2] = 0x00;
-                    speedDirectionData[3] = (byte) (0 - speed);
-                } else {                    //左后右死
-                    speedDirectionData[2] = (byte) (0 - speed);
-                    speedDirectionData[3] = 0x00;
-                }
-            }
-
-        }
-
-    }
-
     private String moveAndReturnValue(float ax, float ay, float az) {
         //x = speed, -10 means backwards full speed, 10 means forwards full speed
         // y= direction, -15 means left full, 5 = right full
@@ -389,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         if (speed != 0 || direction != 0) {
-            calculateSpeedDirectionData(speed, direction);
+            speedDirectionData = ControlUtil.calculateSpeedDirectionData(speed, direction);
         } else {
             speedDirectionData = null;
         }
@@ -398,12 +318,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return movement;
     }
 
+    // speed is from - 50 to 50
     private int getSpeed(float ax) {
-        return (int) (0 - ax) * 5;
+        return (int) ((0f - ax) * 5f);
     }
-
+    // direction is from - 50 to 50
     private int getDirection(float ay) {
-        return (int) ay * 5;
+        return (int) (ay * 5f);
     }
 
     @Override
@@ -455,23 +376,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onLongClick(View view) {
         if (view == turretLeftButton) {
             turrentData = TankControlData.TURRENT_LEFT;
-            isSendingTurretData=true;
+            isSendingTurretData = true;
         }
         if (view == turretRightButton) {
             turrentData = TankControlData.TURRENT_RIGHT;
-            isSendingTurretData=true;
+            isSendingTurretData = true;
         }
         if (view == turretUpButton) {
             turrentData = TankControlData.TURRENT_UP;
-            isSendingTurretData=true;
+            isSendingTurretData = true;
         }
         if (view == turretDownButton) {
             turrentData = TankControlData.TURRENT_DOWN;
-            isSendingTurretData=true;
+            isSendingTurretData = true;
         }
         return false;
     }
-
 
 
     @Override
@@ -552,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 writeToCharacteristic(sendValue, true);
             }
-            if (view == turretLeftButton || view == turretRightButton || view == turretUpButton||view == turretDownButton) {
+            if (view == turretLeftButton || view == turretRightButton || view == turretUpButton || view == turretDownButton) {
                 isSendingTurretData = false;
             }
 
