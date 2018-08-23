@@ -37,6 +37,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.sumimakito.awesomeqr.AwesomeQRCode;
+import com.jjstudio.jjtank.model.Switcher;
 import com.jjstudio.jjtank.model.TankControlData;
 import com.jjstudio.jjtank.service.BluetoothLeService;
 import com.jjstudio.jjtank.util.ControlUtil;
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isConnectted = true;
     private String mDeviceAddress;
     private BluetoothGattCharacteristic bluetoothGattCharacteristicChl1;
+    private Switcher switcher;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl2;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl3;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl4;
@@ -190,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        switcher = new Switcher();
         mDeviceAddress = getIntent().getExtras().getString(EXTRAS_DEVICE_ADDRESS);
         tankName = getIntent().getExtras().getString(EXTRAS_TANK);
         super.onCreate(savedInstanceState);
@@ -465,13 +468,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!isOn) {
                     btn.setImageResource(R.drawable.swithfieldon);
                     btn.setTag(true);
-                    sendValue = TankControlData.SWT_1_ON;
+                    if (view == lightSwitchButton) {
+                        switcher.setSwitch1on(true);
+                    }
+                    if (view == mgSwitchButton) {
+                        switcher.setSwitch2on(true);
+                    }
+                    if (view == soundSwitchButton) {
+                        switcher.setSwitch3on(true);
+                    }
+                    if (view == gyroSwitchButton) {
+                        switcher.setSwitch4on(true);
+                    }
                 } else {
                     btn.setImageResource(R.drawable.swithfieldoff);
-                    sendValue = TankControlData.SWT_1_OFF;
+                    if (view == lightSwitchButton) {
+                        switcher.setSwitch1on(false);
+                    }
+                    if (view == mgSwitchButton) {
+                        switcher.setSwitch2on(false);
+                    }
+                    if (view == soundSwitchButton) {
+                        switcher.setSwitch3on(false);
+                    }
+                    if (view == gyroSwitchButton) {
+                        switcher.setSwitch4on(false);
+                    }
                     btn.setTag(false);
                 }
-                writeToCharacteristic(sendValue, true);
+                writeToCharacteristic(ControlUtil.calculateSwitchData(switcher), true);
             }
             if (view == switchButton) {
                 if (isRunning) {

@@ -1,8 +1,39 @@
 package com.jjstudio.jjtank.util;
 
+import com.jjstudio.jjtank.model.Switcher;
+
 public class ControlUtil {
 
-    public static byte[] calculateSpeedDirectionData(int speed, int direction) {
+    public static byte[] calculateSwitchData(Switcher switcher) {
+        byte[] switchData = new byte[5];
+        switchData[0] = (byte) 0xA5;
+        switchData[1] = (byte) 0xC6;
+        int lightPosition=0;
+        int lightOn=0;
+        if (switcher.isSwitch1on()){
+            lightPosition+=2;
+            lightOn+=2;
+        }
+        if (switcher.isSwitch2on()){
+            lightPosition+=4;
+            lightOn+=4;
+        }
+        if (switcher.isSwitch3on()){
+            lightPosition+=8;
+            lightOn+=8;
+        }
+        if (switcher.isSwitch4on()){
+            lightPosition+=16;
+            lightOn+=16;
+        }
+        switchData[2] = (byte) lightPosition;
+        switchData[3] = (byte) lightOn;
+        switchData[4] = (byte) 0xAA;
+        return switchData;
+    }
+
+
+        public static byte[] calculateSpeedDirectionData(int speed, int direction) {
         // 不响应 速度 speed<10
         //  speed>30 则满速
         // 不响应 方向 direction<15
