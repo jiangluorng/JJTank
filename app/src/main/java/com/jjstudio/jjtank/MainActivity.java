@@ -33,6 +33,7 @@ import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener,SeekBar.OnSeekBarChangeListener {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String EXTRAS_TANK = "TANK";
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl3;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl4;
 //    private BluetoothGattCharacteristic bluetoothGattCharacteristicChl5;
+    private int tankSpeed;
 
     private ImageButton exitButton;
     private ImageButton switchButton;
@@ -89,10 +91,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button turretUpButton;
     private Button turretRightButton;
     private Button turretDownButton;
-    private ProgressBar throttleProgressBar;
     private TextView dataDisplayTextView;
     private TextView speedDirectionDataText;
     private TextView receivedData;
+    private SeekBar throttleSeekBar;
 
     private TextView statusTextView;
     protected byte[] speedDirectionData;
@@ -208,7 +210,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDisplayTextView = findViewById(R.id.dataDisplayTextView);
         receivedData = findViewById(R.id.receivedData);
         speedDirectionDataText = findViewById(R.id.speedDirectionDataText);
-        throttleProgressBar = findViewById(R.id.throttleProgressBar);
         statusTextView.setText("Connecting Tank " + tankName);
         switchButton = findViewById(R.id.startupButton);
         lightSwitchButton = findViewById(R.id.switch1);
@@ -226,6 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         turretUpButton = findViewById(R.id.turretUpButton);
         turretRightButton = findViewById(R.id.turretRightButton);
         turretDownButton = findViewById(R.id.turretDownButton);
+        throttleSeekBar = findViewById(R.id.throttleSeekBar);
         qrButton = findViewById(R.id.qrButton);
 
 
@@ -247,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switchButton.setOnClickListener(this);
         qrButton.setOnClickListener(this);
         reconnectButton.setOnClickListener(this);
+        throttleSeekBar.setOnSeekBarChangeListener(this);
         connectTank();
         loadOffset();
     }
@@ -295,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        writeToCharacteristic();
         String movement = "";
 
-        int speed = getSpeed(ax);
+        int speed = tankSpeed;
         int direction = getDirection(ay);
 
         speed = speed + Integer.parseInt(speedDirectionOffset[0]);
@@ -322,7 +325,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
         // adding 50 to display backwards speed
-        throttleProgressBar.setProgress(speed + 50);
         if (direction != 0) {
             if (ay > -5) {
                 movement += " Right, ";
@@ -381,6 +383,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBluetoothLeService.disconnect();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
+       sendingDataHandler.removeCallbacks(sendingDataRunnable);
+       sendingTurretHandler.removeCallbacks(sendingTurretRunnable);
+       blueHandler.removeCallbacks(bluetoothBlinking);
+       blueTxHandler.removeCallbacks(txBlinking);
+       blueRxHandler.removeCallbacks(rxBlinking);
+
+
     }
 
     private void connectTank() {
@@ -722,5 +731,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+        tankSpeed = seekBar.getProgress()-50;
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+        tankSpeed = seekBar.getProgress()-50;
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        seekBar.setProgress(50);
     }
 }
