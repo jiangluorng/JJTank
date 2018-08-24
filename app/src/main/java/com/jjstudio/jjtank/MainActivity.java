@@ -43,7 +43,9 @@ import com.jjstudio.jjtank.service.BluetoothLeService;
 import com.jjstudio.jjtank.util.ControlUtil;
 import com.jjstudio.jjtank.util.DataUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
@@ -105,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Handler blueHandler = new Handler();
     private Handler blueTxHandler = new Handler();
     private Handler blueRxHandler = new Handler();
+    private Date fireTime;
 
     private boolean isBluetoothBlinking;
     private boolean isSendingTurretData;
@@ -406,6 +409,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             turrentData = TankControlData.TURRENT_DOWN;
             isSendingTurretData = true;
         }
+        //send data immediately
+        writeToCharacteristic(turrentData, false);
+        dataDisplayTextView.setText("Turret data: " + bytesToHex(turrentData));
         return false;
     }
 
@@ -458,8 +464,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             byte[] sendValue;
             if (view == fireButton) {
                 if (isConnectted) {
-                    sendValue = TankControlData.FIRE;
-                    writeToCharacteristic(sendValue, true);
+                    if (fireTime==null) {
+                        fireTime =new Date();
+                        sendValue = TankControlData.FIRE;
+                        writeToCharacteristic(sendValue, false);
+                        dataDisplayTextView.setText("Fire!");
+                    }else {
+                        Date now = new Date();
+                        if ((now.getTime()-fireTime.getTime())>2000){
+                            fireTime =new Date();
+                            sendValue = TankControlData.FIRE;
+                            writeToCharacteristic(sendValue, false);
+                            dataDisplayTextView.setText("Fire!");
+                        }else {
+                            dataDisplayTextView.setText("Gun is cooling off!");
+
+                        }
+                    }
                 }
             }
             if (view == lightSwitchButton || view == mgSwitchButton || view == soundSwitchButton || view == gyroSwitchButton) {
@@ -511,6 +532,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 writeToCharacteristic(sendValue, true);
             }
             if (view == turretLeftButton || view == turretRightButton || view == turretUpButton || view == turretDownButton) {
+                turrentData = TankControlData.TURRENT_STOP;
+                writeToCharacteristic(turrentData, false);
+                dataDisplayTextView.setText("Turret stopped");
+
                 isSendingTurretData = false;
             }
 
