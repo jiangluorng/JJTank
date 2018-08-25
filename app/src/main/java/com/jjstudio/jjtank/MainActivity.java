@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String TANK_SPEED_DIRECTION_OFFSET = "SPEED_DIRECTION_OFFSET";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     public static final String EXTRAS_BLUETOOTH_DEVICE = "BLUETOOTH_DEVICE";
+    public static final String EXTRAS_BLUETOOTH_INTERVAL = "EXTRAS_BLUETOOTH_INTERVAL";
     private String tankName;
     private static final String JJCTRL_SERV_UUID = "0000FFF0";
     private static final String JJCTRL_CHNEL1_UUID = "0000FFF2";
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected byte[] turrentData;
 
     private int blueBlinkInterval = 500; // 0.5 seconds by default
+    private int blueTxInterval = 200; // 0.5 seconds by default
     private int txBlinkInterval = 200; // 0.5 seconds by default
 
 
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 speedDirectionDataText.setText("Speed and direction: " + bytesToHex(speedDirectionData));
 
             }
-            sendingDataHandler.postDelayed(sendingDataRunnable, blueBlinkInterval);
+            sendingDataHandler.postDelayed(sendingDataRunnable, blueTxInterval);
         }
     };
 
@@ -188,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 dataDisplayTextView.setText("Turret stopped.");
 
             }
-            sendingTurretHandler.postDelayed(sendingTurretRunnable, blueBlinkInterval);
+            sendingTurretHandler.postDelayed(sendingTurretRunnable, blueTxInterval);
         }
     };
 
@@ -259,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferences prefs = this.getSharedPreferences(
                 "com.jjstudio.jjtank", Context.MODE_PRIVATE);
         speedDirectionOffset = prefs.getString(MainActivity.TANK_SPEED_DIRECTION_OFFSET, "0|0").split("\\|");
+        blueTxInterval =  prefs.getInt(MainActivity.EXTRAS_BLUETOOTH_INTERVAL, blueTxInterval);
     }
 
     private void saveTank(String tankName, String mDeviceAddress) {

@@ -6,11 +6,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
-public class SettingActivity extends AppCompatActivity implements View.OnClickListener {
+public class SettingActivity extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemSelectedListener {
     private ImageButton backButton;
     private ImageButton saveButton;
     private String[] speedDirectionOffset;
@@ -18,6 +21,8 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
     private EditText speedOffset;
     private String mDeviceAddress;
     private String tankName;
+    private Spinner bluetoothIntervalSpinner;
+    private static final Integer[] interval = {100, 200, 500,800};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +34,16 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         saveButton = findViewById(R.id.saveButton);
         directionOffset = findViewById(R.id.directionOffset);
         speedOffset = findViewById(R.id.speedOffset);
+        bluetoothIntervalSpinner = findViewById(R.id.bluetoothIntervalSpinner);
         backButton.setOnClickListener(this);
         saveButton.setOnClickListener(this);
+        bluetoothIntervalSpinner.setOnItemSelectedListener(this);
+        ArrayAdapter<Integer>adapter = new ArrayAdapter<Integer>(SettingActivity.this,
+                android.R.layout.simple_spinner_item,interval);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        bluetoothIntervalSpinner.setAdapter(adapter);
+        bluetoothIntervalSpinner.setOnItemSelectedListener(this);
         loadSetting();
     }
 
@@ -57,5 +70,17 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
             intent.putExtra(MainActivity.EXTRAS_TANK, tankName);
             startActivity(intent);
         }
+    }
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+        SharedPreferences prefs = this.getSharedPreferences(
+                "com.jjstudio.jjtank", Context.MODE_PRIVATE);
+        prefs.edit().putInt(MainActivity.EXTRAS_BLUETOOTH_INTERVAL, (Integer)parent.getItemAtPosition(position)).apply();
+        }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+        SharedPreferences prefs = this.getSharedPreferences(
+                "com.jjstudio.jjtank", Context.MODE_PRIVATE); prefs.edit().putInt(MainActivity.EXTRAS_BLUETOOTH_INTERVAL, 200).apply();
+
     }
 }
