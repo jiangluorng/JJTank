@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">JJTank</string>
-    <string name="fire_button_name">Fire</string>
-    <string name="turret_left_button_name">Left</string>
-    <string name="turret_right_button_name">Right</string>
-    <string name="turret_up_button_name">Up</string>
-    <string name="turret_down_button_name">Down</string>
+    <string name="app_version">JJTank 1.0</string>
+    <string name="qr_button_name">扫描QR</string>
+    <string name="scan_button_name">蓝牙扫描</string>
     <string name="bluetooth_indicator_name">Bluetooth</string>
     <string name="ble_not_supported">Bluetooth LE not supported</string>
     <string name="connected">Connected</string>
@@ -13,5 +11,8 @@
     <string name="title_location_permission">Need permission</string>
     <string name="text_location_permission">Please grant permission to use JJTank</string>
     <string name="ok">OK</string>
+    <string name="tank_status_text">坦克状态</string>
+    <string name="tank_data_text">数据状态</string>
+    <string name="tank_move_text">移动状态</string>
 
 </resources>
