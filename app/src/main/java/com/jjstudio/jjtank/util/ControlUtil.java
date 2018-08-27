@@ -8,23 +8,23 @@ public class ControlUtil {
         byte[] switchData = new byte[5];
         switchData[0] = (byte) 0xA5;
         switchData[1] = (byte) 0xC6;
-        int lightPosition=0;
-        int lightOn=0;
-        if (switcher.isSwitch1on()){
-            lightPosition+=2;
-            lightOn+=2;
+        int lightPosition = 0;
+        int lightOn = 0;
+        if (switcher.isSwitch1on()) {
+            lightPosition += 2;
+            lightOn += 2;
         }
-        if (switcher.isSwitch2on()){
-            lightPosition+=4;
-            lightOn+=4;
+        if (switcher.isSwitch2on()) {
+            lightPosition += 4;
+            lightOn += 4;
         }
-        if (switcher.isSwitch3on()){
-            lightPosition+=8;
-            lightOn+=8;
+        if (switcher.isSwitch3on()) {
+            lightPosition += 8;
+            lightOn += 8;
         }
-        if (switcher.isSwitch4on()){
-            lightPosition+=16;
-            lightOn+=16;
+        if (switcher.isSwitch4on()) {
+            lightPosition += 16;
+            lightOn += 16;
         }
         switchData[2] = (byte) lightPosition;
         switchData[3] = (byte) lightOn;
@@ -33,7 +33,7 @@ public class ControlUtil {
     }
 
 
-        public static byte[] calculateSpeedDirectionData(int speed, int direction) {
+    public static byte[] calculateSpeedDirectionData(int speed, int direction) {
         // 不响应 速度 speed<10
         //  speed>30 则满速
         // 不响应 方向 direction<15
@@ -79,19 +79,19 @@ public class ControlUtil {
         } else if (tankSpeed != 0 && Math.abs(tankDirection) < 40) {
             if (tankSpeed > 0) {
                 if (tankDirection > 0) {        //差速前左转
-                    speedDirectionData[2] = (byte) (speed * 2 / 3);
+                    speedDirectionData[2] = (byte) (speed / 2);
                     speedDirectionData[3] = (byte) speed;
                 } else {                    //差速前右转
                     speedDirectionData[2] = (byte) speed;
-                    speedDirectionData[3] = (byte) (speed * 2 / 3);
+                    speedDirectionData[3] = (byte) (speed / 2);
                 }
             } else if (tankSpeed < 0) {
                 if (tankDirection > 0) {        //差速后左转
-                    speedDirectionData[2] = (byte) (0x40 - speed * 2 / 3);
+                    speedDirectionData[2] = (byte) (0x40 - speed / 2);
                     speedDirectionData[3] = (byte) (0 - speed);
                 } else {                    //差速后右转
                     speedDirectionData[2] = (byte) (0x40 - speed);
-                    speedDirectionData[3] = (byte) (0x40 - speed * 2 / 3);
+                    speedDirectionData[3] = (byte) (0x40 - speed / 2);
                 }
             }
         }
@@ -120,9 +120,9 @@ public class ControlUtil {
             } else if (tankSpeed < 0) {
                 if (tankDirection > 0) {        //左死右后
                     speedDirectionData[2] = 0x00;
-                    speedDirectionData[3] = (byte) (0 - tankSpeed);
+                    speedDirectionData[3] = (byte) (0x40 + -tankSpeed);
                 } else {                    //左后右死
-                    speedDirectionData[2] = (byte) (0 - tankSpeed);
+                    speedDirectionData[2] = (byte) (0x40 - tankSpeed);
                     speedDirectionData[3] = 0x00;
                 }
             }
