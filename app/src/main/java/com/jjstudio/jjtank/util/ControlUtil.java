@@ -97,7 +97,7 @@ public class ControlUtil {
         }
 
         //原地转弯
-        else if (Math.abs(tankSpeed) < 0) {
+        else if (Math.abs(tankSpeed) == 0) {
             if (tankDirection > 0) {        //原地左转
                 speedDirectionData[2] = 0x7A;
                 speedDirectionData[3] = 0x3A;
