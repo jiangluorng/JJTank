@@ -120,7 +120,7 @@ public class ControlUtil {
             } else if (tankSpeed < 0) {
                 if (tankDirection > 0) {        //左死右后
                     speedDirectionData[2] = 0x00;
-                    speedDirectionData[3] = (byte) (0x40 + -tankSpeed);
+                    speedDirectionData[3] = (byte) (0x40 + tankSpeed);
                 } else {                    //左后右死
                     speedDirectionData[2] = (byte) (0x40 - tankSpeed);
                     speedDirectionData[3] = 0x00;

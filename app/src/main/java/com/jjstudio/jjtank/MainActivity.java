@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int tankSpeed;
 
     private ImageButton exitButton;
-    private ImageButton switchButton;
     private ImageButton lightSwitchButton;
     private ImageButton mgSwitchButton;
     private ImageButton soundSwitchButton;
@@ -84,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton fireButton;
     private ImageButton settingButton;
     private ImageButton qrButton;
-    private ImageButton reconnectButton;
     private ImageButton bluetoothIndicator;
     private ImageButton bluetoothTxIndicator;
     private ImageButton bluetoothRxIndicator;
@@ -213,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         receivedData = findViewById(R.id.receivedData);
         speedDirectionDataText = findViewById(R.id.speedDirectionDataText);
         statusTextView.setText("Connecting Tank " + tankName);
-        switchButton = findViewById(R.id.startupButton);
         lightSwitchButton = findViewById(R.id.switch1);
         mgSwitchButton = findViewById(R.id.switch2);
         soundSwitchButton = findViewById(R.id.switch3);
@@ -221,7 +218,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fireButton = findViewById(R.id.fireButton);
         exitButton = findViewById(R.id.exitButton);
         settingButton = findViewById(R.id.settingButton);
-        reconnectButton = findViewById(R.id.reconnectButton);
         bluetoothIndicator = findViewById(R.id.bluetoothIndicator);
         bluetoothTxIndicator = findViewById(R.id.bluetoothTxIndicator);
         bluetoothRxIndicator = findViewById(R.id.bluetoothRxIndicator);
@@ -248,9 +244,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mgSwitchButton.setOnClickListener(this);
         soundSwitchButton.setOnClickListener(this);
         gyroSwitchButton.setOnClickListener(this);
-        switchButton.setOnClickListener(this);
         qrButton.setOnClickListener(this);
-        reconnectButton.setOnClickListener(this);
         throttleSeekBar.setOnSeekBarChangeListener(this);
         connectTank();
         loadOffset();
@@ -337,7 +331,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         movement = movement + "Speed " + speed;
         movement = movement + " Direction " + direction;
-        Log.d(TAG, movement);
         return movement;
     }
 
@@ -531,23 +524,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 writeToCharacteristic(ControlUtil.calculateSwitchData(switcher), true);
             }
-            if (view == switchButton) {
-                if (isRunning) {
-                    sendValue = TankControlData.STOP;
-                    Toast.makeText(getApplicationContext(), "Tank stopped", Toast.LENGTH_SHORT).show();
-                    isRunning = false;
-                } else {
-                    sendValue = TankControlData.GO;
-                    Toast.makeText(getApplicationContext(), "Tank start", Toast.LENGTH_SHORT).show();
-                    isRunning = true;
-                }
-                writeToCharacteristic(sendValue, true);
-            }
+
             if (view == turretLeftButton || view == turretRightButton || view == turretUpButton || view == turretDownButton) {
                 turrentData = TankControlData.TURRENT_STOP;
                 writeToCharacteristic(turrentData, false);
                 dataDisplayTextView.setText("Turret stopped");
-
                 isSendingTurretData = false;
             }
 
@@ -563,9 +544,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 qrImage.setImageBitmap(qrCode);
                 qrDialog.show();
             }
-        }
-        if (view == reconnectButton) {
-            connectTank();
         }
 
     }

@@ -363,6 +363,7 @@ public class SplashActivity extends AppCompatActivity implements LocationListene
                 tankUUIDs.add(deviceAddress);
                 tankList.add(new Tank(deviceName, deviceAddress, StatusEnum.Disconnected, bluetoothDevice));
                 tankInfoTextView.append("Found device  " + deviceName + " -  " + deviceAddress + "\n");
+                mAdapter.notifyDataSetChanged();
             }
         }
     };

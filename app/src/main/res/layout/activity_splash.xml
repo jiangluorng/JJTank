@@ -68,8 +68,8 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/tankListView"
-        android:layout_width="172dp"
-        android:layout_height="305dp"
+        android:layout_width="227dp"
+        android:layout_height="268dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
