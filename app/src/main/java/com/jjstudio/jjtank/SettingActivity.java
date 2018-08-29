@@ -51,6 +51,16 @@ public class SettingActivity extends AppCompatActivity implements View.OnClickLi
         SharedPreferences prefs = this.getSharedPreferences(
                 "com.jjstudio.jjtank", Context.MODE_PRIVATE);
         speedDirectionOffset = prefs.getString(MainActivity.TANK_SPEED_DIRECTION_OFFSET, "0|0").split("\\|");
+        int savedInterval = prefs.getInt(MainActivity.EXTRAS_BLUETOOTH_INTERVAL,100);
+        if (savedInterval==100){
+            bluetoothIntervalSpinner.setSelection(0);
+        }else if (savedInterval==200){
+            bluetoothIntervalSpinner.setSelection(1);
+        }else if (savedInterval==500){
+            bluetoothIntervalSpinner.setSelection(2);
+        }else {
+            bluetoothIntervalSpinner.setSelection(3);
+        }
         directionOffset.setText(speedDirectionOffset[0]);
         directionOffset.setText(speedDirectionOffset[1]);
     }
