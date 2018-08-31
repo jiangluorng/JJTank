@@ -46,27 +46,26 @@ public class ControlUtil {
         speedDirectionData[4] = (byte) 0xAA;
         int tankSpeed = speed;
         int tankDirection = direction;
-        //不响应区
-        if (Math.abs(speed) < 10) {
-            tankSpeed = 0;
-        } else {
-            if (speed > 0) {
-                tankSpeed = (int) ((speed - 10) * 1.25);
-            } else {
-                tankSpeed = (int) ((speed + 10) * 1.25);
+        //不响应区 & 原地旋转区
+        if (Math.abs(tankSpeed) < 10) {
+            //不响应
+            if (Math.abs(tankDirection) < 30) {
+                speedDirectionData[2] = 0x00;
+                speedDirectionData[3] = 0x00;
             }
-        }
-        if (Math.abs(direction) < 15) {
-            tankDirection = 0;
-        } else if (Math.abs(direction) < 40) {
-            if (direction > 0) {
-                tankDirection = (direction - 15) * 2;
-            } else {
-                tankDirection = (direction + 15) * 2;
+            //原地旋转
+            else {    //if (Math.abs(direction) >= 30)
+                if (tankDirection > 0) {        //原地左转
+                    speedDirectionData[2] = 0x70;
+                    speedDirectionData[3] = 0x30;
+                } else {                    //原地右转
+                    speedDirectionData[2] = 0x30;
+                    speedDirectionData[3] = 0x70;
+                }
             }
         }
         //直线前进, 后退
-        if (tankSpeed != 0 && tankDirection == 0) {
+        else if (Math.abs(tankDirection) < 10) {  //已经满足Math.abs(tankSpeed) >= 10
             if (tankSpeed > 0) {
                 speedDirectionData[2] = (byte) tankSpeed;
                 speedDirectionData[3] = (byte) tankSpeed;
@@ -74,40 +73,51 @@ public class ControlUtil {
                 speedDirectionData[2] = (byte) (0x40 - tankSpeed);
                 speedDirectionData[3] = (byte) (0x40 - tankSpeed);
             }
-
-            //差速运动
-        } else if (tankSpeed != 0 && Math.abs(tankDirection) < 40) {
+        }
+        //差速运动模式 1
+            // ( 10<=Math.abs(tankDirection)<20) 且 Math.abs(tankSpeed) >= 10
+        else if (Math.abs(tankDirection) < 20) {
             if (tankSpeed > 0) {
                 if (tankDirection > 0) {        //差速前左转
-                    speedDirectionData[2] = (byte) (speed / 2);
+                    speedDirectionData[2] = (byte) (speed / 3);
                     speedDirectionData[3] = (byte) speed;
                 } else {                    //差速前右转
                     speedDirectionData[2] = (byte) speed;
-                    speedDirectionData[3] = (byte) (speed / 2);
+                    speedDirectionData[3] = (byte) (speed / 3);
                 }
             } else if (tankSpeed < 0) {
                 if (tankDirection > 0) {        //差速后左转
-                    speedDirectionData[2] = (byte) (0x40 - speed / 2);
-                    speedDirectionData[3] = (byte) (0 - speed);
+                    speedDirectionData[2] = (byte) (0x40 - speed / 3);
+                    speedDirectionData[3] = (byte) (0x40 - speed);
                 } else {                    //差速后右转
                     speedDirectionData[2] = (byte) (0x40 - speed);
-                    speedDirectionData[3] = (byte) (0x40 - speed / 2);
+                    speedDirectionData[3] = (byte) (0x40 - speed / 3);
                 }
             }
         }
-
-        //原地转弯
-        else if (Math.abs(tankSpeed) == 0) {
-            if (tankDirection > 0) {        //原地左转
-                speedDirectionData[2] = 0x7A;
-                speedDirectionData[3] = 0x3A;
-            } else {                    //原地右转
-                speedDirectionData[2] = 0x7A;
-                speedDirectionData[3] = 0x3A;
+        //差速运动模式 2
+        // ( 20<=Math.abs(tankDirection)<30) 且 Math.abs(tankSpeed) >= 10
+        else if (Math.abs(tankDirection) < 30) {
+            if (tankSpeed > 0) {
+                if (tankDirection > 0) {        //差速前左转
+                    speedDirectionData[2] = (byte) (speed / 5);
+                    speedDirectionData[3] = (byte) speed;
+                } else {                    //差速前右转
+                    speedDirectionData[2] = (byte) speed;
+                    speedDirectionData[3] = (byte) (speed / 5);
+                }
+            } else if (tankSpeed < 0) {
+                if (tankDirection > 0) {        //差速后左转
+                    speedDirectionData[2] = (byte) (0x40 - speed / 5);
+                    speedDirectionData[3] = (byte) (0x40 - speed);
+                } else {                    //差速后右转
+                    speedDirectionData[2] = (byte) (0x40 - speed);
+                    speedDirectionData[3] = (byte) (0x40 - speed / 5);
+                }
             }
         }
-
         //单边锁死转弯
+        //( Math.abs(tankDirection)>=30) 且 Math.abs(tankSpeed) >= 10
         else {
             if (tankSpeed > 0) {
                 if (tankDirection > 0) {        //左死右前
@@ -120,7 +130,7 @@ public class ControlUtil {
             } else if (tankSpeed < 0) {
                 if (tankDirection > 0) {        //左死右后
                     speedDirectionData[2] = 0x00;
-                    speedDirectionData[3] = (byte) (0x40 + tankSpeed);
+                    speedDirectionData[3] = (byte) (0x40 - tankSpeed);
                 } else {                    //左后右死
                     speedDirectionData[2] = (byte) (0x40 - tankSpeed);
                     speedDirectionData[3] = 0x00;
@@ -134,3 +144,4 @@ public class ControlUtil {
     }
 
 }
+
